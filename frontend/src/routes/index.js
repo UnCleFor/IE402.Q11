@@ -16,9 +16,9 @@ export const routes = [
         page: React.lazy(() => import("../pages/UserDashboard/UserDashboard")),
         isShowHeader: false
     },
-    {
-        path: '/map',
-        page: React.lazy(() => import("../pages/PublicMapPage/PublicMapPage")),
-        isShowHeader: true
-    }
+    // {
+    //     path: '/map',
+    //     page: React.lazy(() => import("../pages/PublicMapPage/PublicMapPage")),
+    //     isShowHeader: true
+    // }
 ]
