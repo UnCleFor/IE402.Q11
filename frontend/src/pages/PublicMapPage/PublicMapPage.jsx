@@ -1,9 +1,15 @@
-import React from 'react'
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
-const PublicMapPage = () => {
+export default function MapView() {
   return (
-    <div>PublicMapPage</div>
-  )
+    <MapContainer
+      center={[10.762622, 106.660172]} // Tâm là TPHCM
+      zoom={13}
+      style={{ height: "600px", width: "100%" }}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+    </MapContainer>
+  );
 }
-
-export default PublicMapPage
