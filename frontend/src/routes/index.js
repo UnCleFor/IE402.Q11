@@ -17,6 +17,12 @@ export const routes = [
         isPublic: true
     },
     {
+        path: '/register',
+        page: React.lazy(() => import("../pages/LoginPage/RegisterPage")),
+        isShowHeader: false,
+        isPublic: true
+    },
+    {
         path: '/dashboard',
         page: React.lazy(() => import("../pages/UserDashboard/UserDashboard")),
         isShowHeader: false,

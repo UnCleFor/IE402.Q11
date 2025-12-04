@@ -237,13 +237,6 @@ const SearchUserSection = () => {
                 Đăng ký
               </a>
             </li>
-            <li><hr className="dropdown-divider" /></li>
-            <li>
-              <a className="dropdown-item" href="/admin">
-                <i className="bi bi-gear me-2"></i>
-                Quản trị
-              </a>
-            </li>
           </ul>
         )}
       </div>

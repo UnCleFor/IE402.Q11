@@ -282,37 +282,7 @@ const LoginForm = () => {
           </button>
         </form>
 
-        {/* Demo accounts cho testing */}
-        <div className="demo-section mt-4">
-          <p className="text-center small text-muted mb-2">Tài khoản demo (click để thử):</p>
-          <div className="demo-buttons d-flex flex-wrap gap-2 justify-content-center">
-            <button 
-              className="btn btn-sm btn-outline-primary"
-              onClick={() => handleQuickLogin('admin@ytek.vn', 'admin123')}
-              disabled={isLoading}
-            >
-              <i className="bi bi-person-badge me-1"></i>
-              Admin
-            </button>
-            <button 
-              className="btn btn-sm btn-outline-success"
-              onClick={() => handleQuickLogin('doctor@ytek.vn', 'doctor123')}
-              disabled={isLoading}
-            >
-              <i className="bi bi-heart-pulse me-1"></i>
-              Bác sĩ
-            </button>
-            <button 
-              className="btn btn-sm btn-outline-info"
-              onClick={() => handleQuickLogin('user@ytek.vn', 'user123')}
-              disabled={isLoading}
-            >
-              <i className="bi bi-person me-1"></i>
-              Người dùng
-            </button>
-          </div>
-        </div>
-
+      
         {/* Register Link */}
         <div className="text-center mt-4">
           <p className="register-text">
@@ -325,15 +295,6 @@ const LoginForm = () => {
               Đăng ký ngay
             </button>
           </p>
-        </div>
-
-        {/* Thông tin hỗ trợ */}
-        <div className="support-info text-center mt-3">
-          <small className="text-muted">
-            <i className="bi bi-question-circle me-1"></i>
-            Cần hỗ trợ? Liên hệ: 
-            <a href="mailto:support@yte.vn" className="ms-1">support@yte.vn</a>
-          </small>
         </div>
       </div>
     </div>
