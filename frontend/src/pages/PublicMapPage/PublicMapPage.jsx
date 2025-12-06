@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
 import { useEffect, useState } from "react";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -13,12 +13,12 @@ L.Icon.Default.mergeOptions({
 
 export default function MapView() {
   const [locations, setLocations] = useState([]);
+  const [outbreakAreas, setOutbreakAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Tạo các icon tùy chỉnh cho từng loại đối tượng
   const customIcons = {
-    // Icon cho pharmacy
     pharmacy: new L.Icon({
       iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
       iconSize: [25, 41],
@@ -28,7 +28,6 @@ export default function MapView() {
       shadowSize: [41, 41]
     }),
     
-    // Icon cho medical facility
     medical_facility: new L.Icon({
       iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
       iconSize: [25, 41],
@@ -38,7 +37,6 @@ export default function MapView() {
       shadowSize: [41, 41]
     }),
     
-    // Icon mặc định cho các location khác
     default: new L.Icon({
       iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
       iconSize: [25, 41],
@@ -54,85 +52,151 @@ export default function MapView() {
     return customIcons[type] || customIcons.default;
   };
 
+  // Hàm lấy màu sắc cho outbreak area dựa trên severity level
+  const getColorBySeverity = (severity) => {
+    switch(severity) {
+      case 'high': return '#ff0000';
+      case 'medium': return '#ff9900';
+      case 'low': return '#ffff00';
+      default: return '#cccccc';
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // Gọi song song 3 API
-        const [locationsRes, pharmaciesRes, medicalFacilitiesRes] = await Promise.all([
+        // Gọi song song 4 API
+        const [locationsRes, pharmaciesRes, medicalFacilitiesRes, outbreakAreasRes] = await Promise.all([
           fetch("http://localhost:3001/api/locations/"),
-          fetch("http://localhost:3001/api/pharmacy/"),
-          fetch("http://localhost:3001/api/medical-facilities/")
+          fetch("http://localhost:3001/api/pharmacies/"),
+          fetch("http://localhost:3001/api/medical-facilities/"),
+          fetch("http://localhost:3001/api/outbreak-areas/")
         ]);
 
         // Kiểm tra response
-        if (!locationsRes.ok || !pharmaciesRes.ok || !medicalFacilitiesRes.ok) {
+if (!locationsRes.ok || !pharmaciesRes.ok || !medicalFacilitiesRes.ok || !outbreakAreasRes.ok) {
           throw new Error('Có lỗi khi tải dữ liệu từ API');
         }
 
-        const [locationsData, pharmaciesData, medicalFacilitiesData] = await Promise.all([
-          locationsRes.json(),
-          pharmaciesRes.json(),
-          medicalFacilitiesRes.json()
-        ]);
+        const locationsData = await locationsRes.json();
+        const pharmaciesData = await pharmaciesRes.json();
+        const medicalFacilitiesData = await medicalFacilitiesRes.json();
+        const outbreakAreasResponse = await outbreakAreasRes.json();
+
+        console.log('Outbreak areas response:', outbreakAreasResponse); // Debug log
+
+        // Xử lý outbreak areas data - kiểm tra định dạng
+        let outbreakAreasData = [];
+        
+        if (Array.isArray(outbreakAreasResponse)) {
+          // Nếu response là mảng
+          outbreakAreasData = outbreakAreasResponse;
+        } else if (outbreakAreasResponse && typeof outbreakAreasResponse === 'object') {
+          // Nếu response là object, kiểm tra các trường có thể chứa mảng
+          if (outbreakAreasResponse.data && Array.isArray(outbreakAreasResponse.data)) {
+            outbreakAreasData = outbreakAreasResponse.data;
+          } else if (outbreakAreasResponse.results && Array.isArray(outbreakAreasResponse.results)) {
+            outbreakAreasData = outbreakAreasResponse.results;
+          } else if (outbreakAreasResponse.outbreakAreas && Array.isArray(outbreakAreasResponse.outbreakAreas)) {
+            outbreakAreasData = outbreakAreasResponse.outbreakAreas;
+          } else {
+            // Nếu không tìm thấy mảng, thử lấy tất cả values
+            const values = Object.values(outbreakAreasResponse);
+            outbreakAreasData = values.filter(item => Array.isArray(item)).flat();
+          }
+        }
+
+        console.log('Processed outbreak areas data:', outbreakAreasData); // Debug log
 
         // Tạo map để truy xuất nhanh location theo ID
         const locationMap = {};
-        locationsData.forEach(location => {
-          locationMap[location.location_id] = location;
-        });
+        if (Array.isArray(locationsData)) {
+          locationsData.forEach(location => {
+            locationMap[location.location_id] = location;
+          });
+        }
 
-        // Kết hợp dữ liệu
+        // Kết hợp dữ liệu locations
         const combinedData = [];
 
-        // Thêm pharmacies với thông tin location - GIỮ LẠI object_type từ location
-        pharmaciesData.forEach(pharmacy => {
-          const location = locationMap[pharmacy.pharmacy_point_id];
-          if (location && location.coordinates) {
-            // Tạo object mới, giữ lại object_type từ location
-            const combinedPoint = {
-              ...location,
-              ...pharmacy,
-              object_type: location.object_type || 'Pharmacy',
-              type: 'pharmacy',
-              details: pharmacy
-            };
-            combinedData.push(combinedPoint);
-          }
-        });
+        // Thêm pharmacies
+        if (Array.isArray(pharmaciesData)) {
+          pharmaciesData.forEach(pharmacy => {
+            const location = locationMap[pharmacy.pharmacy_point_id];
+            if (location && location.coordinates) {
+              const combinedPoint = {
+                ...location,
+                ...pharmacy,
+                object_type: location.object_type || 'Pharmacy',
+                type: 'pharmacy',
+                details: pharmacy
+              };
+              combinedData.push(combinedPoint);
+            }
+          });
+        }
 
-        // Thêm medical facilities với thông tin location - GIỮ LẠI object_type từ location
-        medicalFacilitiesData.forEach(facility => {
-          const location = locationMap[facility.facility_point_id];
-          if (location && location.coordinates) {
-            // Tạo object mới, giữ lại object_type từ location
-            const combinedPoint = {
-              ...location,
-              ...facility,
-              object_type: location.object_type || 'Medical Facility',
-              type: 'medical_facility',
-              details: facility
-            };
-            combinedData.push(combinedPoint);
-          }
-        });
+        // Thêm medical facilities
+        if (Array.isArray(medicalFacilitiesData)) {
+          medicalFacilitiesData.forEach(facility => {
+            const location = locationMap[facility.facility_point_id];
+            if (location && location.coordinates) {
+const combinedPoint = {
+                ...location,
+                ...facility,
+                object_type: location.object_type || 'Medical Facility',
+                type: 'medical_facility',
+                details: facility
+              };
+              combinedData.push(combinedPoint);
+            }
+          });
+        }
 
-        // Thêm các location khác (nếu có) không thuộc 2 loại trên
-        locationsData.forEach(location => {
-          const isPharmacy = pharmaciesData.some(p => p.pharmacy_point_id === location.location_id);
-          const isMedicalFacility = medicalFacilitiesData.some(m => m.facility_point_id === location.location_id);
+        // Thêm các location khác
+        if (Array.isArray(locationsData)) {
+          locationsData.forEach(location => {
+            const isPharmacy = Array.isArray(pharmaciesData) && 
+              pharmaciesData.some(p => p.pharmacy_point_id === location.location_id);
+            const isMedicalFacility = Array.isArray(medicalFacilitiesData) && 
+              medicalFacilitiesData.some(m => m.facility_point_id === location.location_id);
+            
+            if (!isPharmacy && !isMedicalFacility && location.coordinates) {
+              combinedData.push({
+                ...location,
+                type: 'other',
+                object_type: location.object_type || 'Other'
+              });
+            }
+          });
+        }
+
+        // Xử lý dữ liệu outbreak areas
+        const processedOutbreakAreas = outbreakAreasData.map(area => {
+          // Chuyển đổi dữ liệu geometry
+          let coordinates = [];
           
-          if (!isPharmacy && !isMedicalFacility && location.coordinates) {
-            combinedData.push({
-              ...location,
-              type: 'other',
-              object_type: location.object_type || 'Other'
-            });
+          if (area.area_geom && area.area_geom.coordinates) {
+            // area_geom.coordinates là một mảng các mảng các điểm
+            // Đối với Polygon, chúng ta cần lấy ring đầu tiên
+            const polygonCoordinates = area.area_geom.coordinates[0];
+            
+            // Chuyển đổi từ [long, lat] sang [lat, long] cho Leaflet
+            coordinates = polygonCoordinates.map(coord => [coord[1], coord[0]]);
           }
+          
+          return {
+            ...area,
+            processed_coordinates: coordinates,
+            fillColor: getColorBySeverity(area.severity_level),
+            borderColor: getColorBySeverity(area.severity_level)
+          };
         });
 
         setLocations(combinedData);
+        setOutbreakAreas(processedOutbreakAreas);
         setError(null);
       } catch (err) {
         console.error('Lỗi khi tải dữ liệu:', err);
@@ -147,7 +211,6 @@ export default function MapView() {
 
   // Hàm render nội dung popup tùy theo loại
   const renderPopupContent = (point) => {
-    // Xác định tiêu đề dựa trên type và object_type
     const getTitle = () => {
       if (point.type === 'pharmacy') {
         return `💊 ${point.object_type || 'NHÀ THUỐC'}`;
@@ -163,10 +226,8 @@ export default function MapView() {
         <strong>{getTitle()}</strong><br />
         <hr style={{ margin: '5px 0' }} />
         
-        {/* Hiển thị object_type từ location */}
         <div><strong>Loại đối tượng:</strong> {point.object_type || 'Không xác định'}</div>
-        
-        {point.type === 'pharmacy' && point.details && (
+{point.type === 'pharmacy' && point.details && (
           <>
             <div><strong>Tên nhà thuốc:</strong> {point.details.pharmacy_name || 'Không có tên'}</div>
             {point.details.phone && <div><strong>Điện thoại:</strong> {point.details.phone}</div>}
@@ -183,8 +244,34 @@ export default function MapView() {
           </>
         )}
         
-        {/* Thông tin chung từ location */}
         {point.address && <div><strong>Địa chỉ:</strong> {point.address}</div>}
+      </div>
+    );
+  };
+
+  // Hàm render popup cho outbreak area
+  const renderOutbreakPopup = (area) => {
+    const getSeverityText = (severity) => {
+      switch(severity) {
+        case 'high': return 'Cao';
+        case 'medium': return 'Trung bình';
+        case 'low': return 'Thấp';
+        default: return 'Không xác định';
+      }
+    };
+
+    return (
+      <div>
+        <strong>⚠️ VÙNG DỊCH BỆNH</strong><br />
+        <hr style={{ margin: '5px 0' }} />
+        <div><strong>Tên vùng dịch:</strong> {area.outbreak_name}</div>
+        <div><strong>ID bệnh:</strong> {area.disease_id}</div>
+        <div><strong>Số ca bệnh:</strong> {area.disease_cases}</div>
+        <div><strong>Mức độ nghiêm trọng:</strong> {getSeverityText(area.severity_level)}</div>
+        <div><strong>Ngày bắt đầu:</strong> {new Date(area.start_date).toLocaleDateString('vi-VN')}</div>
+        {area.end_date && (
+          <div><strong>Ngày kết thúc:</strong> {new Date(area.end_date).toLocaleDateString('vi-VN')}</div>
+        )}
       </div>
     );
   };
@@ -226,12 +313,13 @@ export default function MapView() {
         position: 'absolute',
         top: '10px',
         right: '10px',
-        backgroundColor: 'white',
+backgroundColor: 'white',
         padding: '10px',
         borderRadius: '5px',
         boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
         zIndex: 1000,
-        fontSize: '14px'
+        fontSize: '14px',
+        maxWidth: '200px'
       }}>
         <div style={{ marginBottom: '5px', fontWeight: 'bold' }}>Chú thích:</div>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
@@ -254,7 +342,7 @@ export default function MapView() {
           }}></div>
           <span>Cơ sở y tế</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
           <div style={{
             width: '15px',
             height: '15px',
@@ -263,6 +351,35 @@ export default function MapView() {
             borderRadius: '50%'
           }}></div>
           <span>Địa điểm khác</span>
+        </div>
+        <hr style={{ margin: '5px 0' }} />
+        <div style={{ marginBottom: '3px', fontWeight: 'bold' }}>Vùng dịch:</div>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
+          <div style={{
+            width: '15px',
+            height: '15px',
+            backgroundColor: '#ff0000',
+            marginRight: '5px'
+          }}></div>
+          <span>Mức độ cao</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
+          <div style={{
+            width: '15px',
+            height: '15px',
+            backgroundColor: '#ff9900',
+            marginRight: '5px'
+          }}></div>
+          <span>Mức độ trung bình</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3px' }}>
+          <div style={{
+            width: '15px',
+            height: '15px',
+            backgroundColor: '#ffff00',
+            marginRight: '5px'
+          }}></div>
+          <span>Mức độ thấp</span>
         </div>
       </div>
 
@@ -277,8 +394,33 @@ export default function MapView() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
-        {locations.map((point) => {
-          // Kiểm tra xem point có coordinates không
+        {/* Layer outbreak areas - NẰM DƯỚI layer location */}
+        {Array.isArray(outbreakAreas) && outbreakAreas.map((area, index) => {
+if (!area.processed_coordinates || area.processed_coordinates.length === 0) {
+            return null;
+          }
+
+          return (
+            <Polygon
+              key={`outbreak_${area.outbreak_id || index}`}
+              positions={area.processed_coordinates}
+              pathOptions={{
+                fillColor: area.fillColor || '#cccccc',
+                color: area.borderColor || '#cccccc',
+                weight: 2,
+                opacity: 0.6,
+                fillOpacity: 0.2
+              }}
+            >
+              <Popup>
+                {renderOutbreakPopup(area)}
+              </Popup>
+            </Polygon>
+          );
+        })}
+
+        {/* Layer locations - NẰM TRÊN layer outbreak areas */}
+        {Array.isArray(locations) && locations.map((point) => {
           if (!point.coordinates || !point.coordinates.coordinates) {
             return null;
           }
