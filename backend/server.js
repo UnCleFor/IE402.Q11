@@ -1,8 +1,7 @@
 const express = require("express");
 const app = express();
-const dotenv = require("dotenv");
 const cors = require("cors");
-
+const dotenv = require("dotenv");
 dotenv.config();
 
 // Cấu hình CORS đơn giản

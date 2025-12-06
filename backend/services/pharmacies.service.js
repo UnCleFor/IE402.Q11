@@ -1,26 +1,26 @@
 const Pharmacy = require("../models/pharmacy.model");
 
 module.exports = {
-  async create(data) {
+  async createPharmacy(data) {
     return await Pharmacy.create(data);
   },
 
-  async findAll() {
+  async getAllPharmacies() {
     return await Pharmacy.findAll();
   },
 
-  async findOne(id) {
+  async getPharmacyById(id) {
     return await Pharmacy.findByPk(id);
   },
 
-  async update(id, data) {
+  async updatePharmacy(id, data) {
     const pharmacy = await Pharmacy.findByPk(id);
     if (!pharmacy) return null;
     await pharmacy.update(data);
     return pharmacy;
   },
 
-  async delete(id) {
+  async deletePharmacy(id) {
     const pharmacy = await Pharmacy.findByPk(id);
     if (!pharmacy) return null;
     await pharmacy.destroy();

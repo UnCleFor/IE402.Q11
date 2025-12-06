@@ -9,9 +9,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     type: 'hospital',
     address: '',
     phone: '',
-    email: '',
-    website: '',
-    description: '',
+    province: '',
     services: [],
     workingHours: {
       morning: { start: '07:00', end: '12:00' },
@@ -30,16 +28,50 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
   });
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedServices, setSelectedServices] = useState([]);
+
+  const nextStep = () => {
+    setCurrentStep(prev => prev + 1);
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => prev - 1);
+  };
 
   const facilityTypes = [
     { value: 'hospital', label: 'Bệnh viện', icon: 'bi bi-hospital' },
     { value: 'clinic', label: 'Phòng khám', icon: 'bi bi-plus-circle' },
     { value: 'medical_center', label: 'Trung tâm y tế', icon: 'bi bi-building' },
-    { value: 'pharmacy', label: 'Nhà thuốc', icon: 'bi bi-capsule' },
-    { value: 'emergency', label: 'Trung tâm cấp cứu', icon: 'bi bi-ambulance' }
+    { value: 'pharmacy', label: 'Nhà thuốc', icon: 'bi bi-capsule' }
   ];
+  const provinces = [
+  "Hà Nội",
+  "Hải Phòng",
+  "Đà Nẵng",
+  "TP. Hồ Chí Minh",
+  "Cần Thơ",
+  "Tuyên Quang",
+  "Lào Cai",
+  "Thái Nguyên", 
+  "Phú Thọ",
+  "Bắc Ninh",  
+  "Hưng Yên",
+  "Ninh Bình",  
+  "Quảng Trị",
+  "Quảng Ngãi",  
+  "Gia Lai",  
+  "Khánh Hòa",  
+  "Lâm Đồng",
+  "Đắk Lắk",
+  "Đồng Nai",
+  "Tây Ninh",
+  "Vĩnh Long",
+  "An Giang",
+  "Đồng Tháp",
+  "Cà Mau"
+];
 
+
+  const [selectedServices, setSelectedServices] = useState([]);
   const serviceOptions = [
     'Khám tổng quát',
     'Cấp cứu 24/7',
@@ -98,13 +130,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     });
   };
 
-  const nextStep = () => {
-    setCurrentStep(prev => prev + 1);
-  };
 
-  const prevStep = () => {
-    setCurrentStep(prev => prev - 1);
-  };
 
   // Đảm bảo workingHours luôn có giá trị
   const workingHours = formData.workingHours || defaultFormData.workingHours;
@@ -124,17 +150,17 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
           </div>
           <div className={`step ${currentStep >= 2 ? 'active' : ''}`}>
             <span>2</span>
-            Vị trí & Liên hệ
+            Vị trí
           </div>
           <div className={`step ${currentStep >= 3 ? 'active' : ''}`}>
             <span>3</span>
-            Dịch vụ & Giờ làm
+            Hoàn tất
           </div>
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Step 1: Basic Information */}
+        {/* Step 1: Thông tin cơ bản */}
         {currentStep === 1 && (
           <div className="form-step">
             <div className="row">
@@ -150,7 +176,26 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                     required
                   />
                 </div>
+
+                <div className="form-group">
+                  <label>Tỉnh/Thành phố *</label>
+                  <select
+                    className="form-control mt-3"
+                    value={formData.province}
+                    onChange={(e) => handleInputChange('province', e.target.value)}
+                    required
+                  >
+                    <option value="">-- Chọn tỉnh/thành --</option>
+                    {provinces.map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+
+ 
+
               </div>
+
               <div className="col-md-6">
                 <div className="form-group">
                   <label>Loại hình cơ sở *</label>
@@ -170,26 +215,63 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Mô tả</label>
-              <textarea
-                className="form-control"
-                rows="4"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Mô tả về cơ sở y tế, chuyên môn, thiết bị..."
-              />
+            <div className="row">
+                <div className="form-group">
+                    <label>Địa chỉ chi tiết *</label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      value={formData.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố"
+                      required
+                    />
+                </div>
             </div>
 
+            <div className="row">
+                {formData.type !== 'pharmacy' && (
+                  <>
+                  <div className="form-group">
+                      <label>Số điện thoại *</label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        placeholder="VD: 024 3869 3731"
+                        required
+                      />
+                  </div>
+                  <div className="form-group">
+                  <label>Dịch vụ cung cấp</label>
+                  <div className="services-selector">
+                    {serviceOptions.map(service => (
+                      <div
+                        key={service}
+                        className={`service-option ${selectedServices.includes(service) ? 'selected' : ''}`}
+                        onClick={() => toggleService(service)}
+                      >
+                        <i className="bi bi-check-circle-fill"></i>
+                        <span>{service}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                </>
+                )}             
+            </div>
+
+            
             <div className="form-actions">
-              <button type="button" className="btn btn-primary" onClick={nextStep}>
+              <button type="button" className="btn btn-primary ms-auto" onClick={nextStep}>
                 Tiếp theo <i className="bi bi-arrow-right ms-1"></i>
               </button>
-            </div>
+            </div>            
           </div>
         )}
 
-        {/* Step 2: Location & Contact */}
+        {/* Step 2: Vị trí*/}
         {currentStep === 2 && (
           <div className="form-step">
             <div className="form-group">
@@ -199,55 +281,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                 initialLocation={formData.location}
                 height="300px"
               />
-            </div>
-
-            <div className="row">
-              <div className="col-md-6">
-                <div className="form-group">
-                  <label>Địa chỉ chi tiết *</label>
-                  <textarea
-                    className="form-control"
-                    rows="3"
-                    value={formData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="col-md-6">
-                <div className="form-group">
-                  <label>Số điện thoại *</label>
-                  <input
-                    type="tel"
-                    className="form-control"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="VD: 024 3869 3731"
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="VD: contact@benhvienbachmai.vn"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Website</label>
-                  <input
-                    type="url"
-                    className="form-control"
-                    value={formData.website}
-                    onChange={(e) => handleInputChange('website', e.target.value)}
-                    placeholder="VD: https://benhvienbachmai.vn"
-                  />
-                </div>
-              </div>
             </div>
 
             <div className="form-actions">
@@ -261,26 +294,12 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
           </div>
         )}
 
-        {/* Step 3: Services & Working Hours */}
+        {/* Step 3: Hoàn tất */}
         {currentStep === 3 && (
           <div className="form-step">
-            <div className="form-group">
-              <label>Dịch vụ cung cấp</label>
-              <div className="services-selector">
-                {serviceOptions.map(service => (
-                  <div
-                    key={service}
-                    className={`service-option ${selectedServices.includes(service) ? 'selected' : ''}`}
-                    onClick={() => toggleService(service)}
-                  >
-                    <i className="bi bi-check-circle-fill"></i>
-                    <span>{service}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="form-group">
+
+            {/* <div className="form-group">
               <label>Giờ làm việc</label>
               <div className="working-hours">
                 <div className="time-slot">
@@ -316,28 +335,37 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
-            <div className="form-summary">
-              <h6>Tóm tắt thông tin:</h6>
-              <div className="summary-grid">
-                <div className="summary-item">
-                  <label>Tên cơ sở:</label>
-                  <span>{formData.name || '(Chưa có tên)'}</span>
+            <div className= "form-group">
+              <label>Tóm tắt thông tin:</label>   
+
+              <div className="form-summary">
+                <div className="summary-grid">
+                  <div className="summary-item">
+                    <label>Tên cơ sở:</label>
+                    <span>{formData.name || '(Chưa nhập tên)'}</span>
+                  </div>
+                  <div className="summary-item">
+                    <label>Loại hình:</label>
+                    <span>{facilityTypes.find(t => t.value === formData.type)?.label}</span>
+                  </div>
+                  <div className="summary-item">
+                    <label>Số điện thoại:</label>
+                    <span>{formData.phone || '(Chưa nhập số điện thoại)'}</span>
+                  </div>
+                  { formData.type !== 'pharmacy' && (
+                    <div className="summary-item">
+                      <label>Dịch vụ:</label>
+                      <span>{selectedServices.length} dịch vụ</span>
+                    </div>
+                  )}
+                  <div className="summary-item" style={{ gridColumn: "span 2" }}>
+                    <label>Địa chỉ:</label>
+                    <span>{formData.address || '(Chưa nhập địa chỉ)'}</span>
+                  </div>                
                 </div>
-                <div className="summary-item">
-                  <label>Loại hình:</label>
-                  <span>{facilityTypes.find(t => t.value === formData.type)?.label}</span>
-                </div>
-                <div className="summary-item">
-                  <label>Địa chỉ:</label>
-                  <span>{formData.address || '(Chưa có địa chỉ)'}</span>
-                </div>
-                <div className="summary-item">
-                  <label>Dịch vụ:</label>
-                  <span>{selectedServices.length} dịch vụ</span>
-                </div>
-              </div>
+              </div>  
             </div>
 
             <div className="form-actions">

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const pharmacyController = require("../controllers/pharmacy.controller");
+const pharmacyController = require("../controllers/pharmacies.controller");
 
 router.post("/", pharmacyController.create);
 router.get("/", pharmacyController.findAll);

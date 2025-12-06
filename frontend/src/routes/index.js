@@ -29,10 +29,20 @@ export const routes = [
         isPublic: false,
         requiredRole: 'admin'
     },
-     {
+    {
+        path: '/map',
+        page: React.lazy(() => import("../pages/PublicMapPage/PublicMapPage")),
+        isShowHeader: true
+    },
+    {
+        path: '/pharmacy',
+        page: React.lazy(() => import("../pages/PharmacyPage/PharmacyPage")),
+        isShowHeader: true
+    },
+    {
         path: '/unauthorized',
         page: React.lazy(() => import("../pages/UnauthorizedPage/UnauthorizedPage")),
         isShowHeader: false,
         isPublic: true
-    }
+    },
 ]

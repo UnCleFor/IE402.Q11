@@ -10,7 +10,7 @@ const locationRoutes = require("../api/location.route");
 router.use("/users", userRoutes);
 router.use("/medical-facilities", medicalFacilityRoutes);
 router.use("/outbreak-areas", outbreakRoutes);
-router.use("/pharmacy", pharmacyRoutes);
+router.use("/pharmacies", pharmacyRoutes);
 router.use("/locations", locationRoutes);
 
 
