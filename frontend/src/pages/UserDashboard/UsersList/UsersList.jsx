@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './UsersList.css';
+import authService from '../../../services/authService';
 
 const UsersList = ({ onAddUser, onEditUser }) => {
   const [activeTab, setActiveTab] = useState('all');
@@ -16,72 +17,37 @@ const UsersList = ({ onAddUser, onEditUser }) => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      // Simulate API call - replace with actual API
-      const mockUsers = [
-        {
-          user_id: 1,
-          user_name: 'admin_user',
-          email: 'admin@ytek.vn',
-          role: 'admin',
-          created_at: '2024-01-15T08:30:00Z',
-          status: 'active'
-        },
-        {
-          user_id: 2,
-          user_name: 'john_doe',
-          email: 'john@example.com',
-          role: 'user',
-          created_at: '2024-01-14T10:15:00Z',
-          status: 'active'
-        },
-        {
-          user_id: 3,
-          user_name: 'jane_smith',
-          email: 'jane@example.com',
-          role: 'user',
-          created_at: '2024-01-13T14:20:00Z',
-          status: 'inactive'
-        },
-        {
-          user_id: 4,
-          user_name: 'dr_williams',
-          email: 'dr.williams@hospital.com',
-          role: 'doctor',
-          created_at: '2024-01-12T09:45:00Z',
-          status: 'active'
-        },
-        {
-          user_id: 5,
-          user_name: 'nurse_jones',
-          email: 'nurse.jones@clinic.com',
-          role: 'nurse',
-          created_at: '2024-01-11T16:30:00Z',
-          status: 'pending'
-        }
-      ];
+      setError('');
       
-      // Simulate API delay
-      setTimeout(() => {
-        setUsers(mockUsers);
-        setIsLoading(false);
-      }, 500);
+      // Call actual API from authService
+      const response = await authService.getAllUsers();
       
+      // Transform API response to match component structure
+      const formattedUsers = response.map(user => ({
+        user_id: user.id || user.user_id,
+        user_name: user.user_name || user.username || user.email,
+        email: user.email,
+        role: user.role || 'user',
+        created_at: user.created_at || user.createdDate || new Date().toISOString(),
+      }));
+      
+      setUsers(formattedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
-      setError('Không thể tải danh sách người dùng');
+      setError('Không thể tải danh sách người dùng. Vui lòng thử lại sau.');
+    } finally {
       setIsLoading(false);
     }
   };
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
-      user.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase());
+      (user.user_name && user.user_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.role && user.role.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesTab = 
       activeTab === 'all' || 
-      user.status === activeTab ||
       user.role === activeTab;
     
     return matchesSearch && matchesTab;
@@ -91,13 +57,10 @@ const UsersList = ({ onAddUser, onEditUser }) => {
     const roleConfig = {
       admin: { label: 'Quản trị viên', class: 'danger', icon: 'bi-shield-check' },
       user: { label: 'Người dùng', class: 'primary', icon: 'bi-person' },
-      doctor: { label: 'Bác sĩ', class: 'success', icon: 'bi-heart-pulse' },
-      nurse: { label: 'Y tá', class: 'info', icon: 'bi-thermometer' },
-      staff: { label: 'Nhân viên', class: 'warning', icon: 'bi-briefcase' }
     };
     
     const config = roleConfig[role] || { 
-      label: role, 
+      label: role || 'Người dùng', 
       class: 'secondary', 
       icon: 'bi-person' 
     };
@@ -110,32 +73,29 @@ const UsersList = ({ onAddUser, onEditUser }) => {
     );
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      active: { label: 'Hoạt động', class: 'success' },
-      pending: { label: 'Chờ duyệt', class: 'warning' },
-      inactive: { label: 'Ngừng hoạt động', class: 'danger' }
-    };
-    
-    const config = statusConfig[status] || { label: status, class: 'secondary' };
-    return <span className={`badge bg-${config.class}`}>{config.label}</span>;
-  };
-
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'N/A';
+    }
   };
 
   const handleDeleteUser = async (userId, userName) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa người dùng "${userName}"?`)) {
       try {
         // Call API to delete user
-        console.log('Deleting user:', userId);
-        // Simulate API call
+        await authService.deleteUser(userId);
+        
+        // Update local state
         setUsers(users.filter(user => user.user_id !== userId));
         alert('Đã xóa người dùng thành công!');
       } catch (error) {
@@ -145,28 +105,10 @@ const UsersList = ({ onAddUser, onEditUser }) => {
     }
   };
 
-  const handleToggleStatus = async (userId, currentStatus) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    const action = newStatus === 'active' ? 'kích hoạt' : 'vô hiệu hóa';
-    
-    if (window.confirm(`Bạn có chắc chắn muốn ${action} người dùng này?`)) {
-      try {
-        // Call API to update status
-        console.log('Updating user status:', userId, newStatus);
-        
-        // Update local state
-        setUsers(users.map(user => 
-          user.user_id === userId 
-            ? { ...user, status: newStatus }
-            : user
-        ));
-        
-        alert(`Đã ${action} người dùng thành công!`);
-      } catch (error) {
-        console.error('Error updating user status:', error);
-        alert('Không thể cập nhật trạng thái. Vui lòng thử lại.');
-      }
-    }
+  const stats = {
+    total: users.length,
+    admin: users.filter(u => u.role === 'admin').length,
+    user: users.filter(u => u.role === 'user').length,
   };
 
   return (
@@ -184,47 +126,36 @@ const UsersList = ({ onAddUser, onEditUser }) => {
 
       {/* Quick Stats */}
       <div className="row mb-4">
-        <div className="col-md-3 col-sm-6">
+        <div className="col-md-4 col-sm-6">
           <div className="quick-stat">
             <div className="stat-icon">
               <i className="bi bi-people-fill"></i>
             </div>
             <div className="stat-info">
-              <h4>{users.length}</h4>
+              <h4>{stats.total}</h4>
               <span>Tổng người dùng</span>
             </div>
           </div>
         </div>
-        <div className="col-md-3 col-sm-6">
+        <div className="col-md-4 col-sm-6">
           <div className="quick-stat">
             <div className="stat-icon">
               <i className="bi bi-shield-check"></i>
             </div>
             <div className="stat-info">
-              <h4>{users.filter(u => u.role === 'admin').length}</h4>
+              <h4>{stats.admin}</h4>
               <span>Quản trị viên</span>
             </div>
           </div>
         </div>
-        <div className="col-md-3 col-sm-6">
+        <div className="col-md-4 col-sm-6">
           <div className="quick-stat">
             <div className="stat-icon">
-              <i className="bi bi-person-check"></i>
+              <i className="bi bi-person"></i>
             </div>
             <div className="stat-info">
-              <h4>{users.filter(u => u.status === 'active').length}</h4>
-              <span>Đang hoạt động</span>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3 col-sm-6">
-          <div className="quick-stat">
-            <div className="stat-icon">
-              <i className="bi bi-clock-history"></i>
-            </div>
-            <div className="stat-info">
-              <h4>{users.filter(u => u.status === 'pending').length}</h4>
-              <span>Chờ duyệt</span>
+              <h4>{stats.user}</h4>
+              <span>Người dùng thường</span>
             </div>
           </div>
         </div>
@@ -264,12 +195,6 @@ const UsersList = ({ onAddUser, onEditUser }) => {
               >
                 Người dùng
               </button>
-              <button
-                className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
-                onClick={() => setActiveTab('active')}
-              >
-                Đang hoạt động
-              </button>
             </div>
           </div>
         </div>
@@ -303,7 +228,6 @@ const UsersList = ({ onAddUser, onEditUser }) => {
                     <th>Tên đăng nhập</th>
                     <th>Email</th>
                     <th>Vai trò</th>
-                    <th>Trạng thái</th>
                     <th>Ngày tạo</th>
                     <th>Thao tác</th>
                   </tr>
@@ -328,9 +252,6 @@ const UsersList = ({ onAddUser, onEditUser }) => {
                         {getRoleBadge(user.role)}
                       </td>
                       <td>
-                        {getStatusBadge(user.status)}
-                      </td>
-                      <td>
                         <div className="user-date">
                           {formatDate(user.created_at)}
                         </div>
@@ -343,13 +264,6 @@ const UsersList = ({ onAddUser, onEditUser }) => {
                             onClick={() => onEditUser(user)}
                           >
                             <i className="bi bi-pencil"></i>
-                          </button>
-                          <button 
-                            className={`btn btn-sm btn-outline-${user.status === 'active' ? 'warning' : 'success'}`}
-                            title={user.status === 'active' ? 'Vô hiệu hóa' : 'Kích hoạt'}
-                            onClick={() => handleToggleStatus(user.user_id, user.status)}
-                          >
-                            <i className={`bi bi-${user.status === 'active' ? 'slash-circle' : 'check-circle'}`}></i>
                           </button>
                           <button 
                             className="btn btn-sm btn-outline-danger" 

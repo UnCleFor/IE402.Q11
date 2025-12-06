@@ -1,12 +1,4 @@
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: 'http://localhost:3001/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 10000,
-});
+import { api } from './axiosServices';
 
 const authService = {
   login: async (email, password) => {
@@ -59,6 +51,19 @@ const authService = {
     }
   },
 
+  getAllUsers: async () => {
+    try {
+      const response = await api.get('/users');
+      return response.data;
+    } catch (error) {
+      console.log('Get all users error:', error.message);
+      return { 
+        success: false, 
+        message: 'Không thể lấy danh sách người dùng' 
+      };
+    }
+  },
+
   setToken: (token) => {
     localStorage.setItem('authToken', token);
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -84,5 +89,4 @@ if (token) {
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
 
-export { api };
 export default authService;
