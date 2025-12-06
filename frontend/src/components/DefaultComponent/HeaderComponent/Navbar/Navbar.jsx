@@ -19,6 +19,12 @@ const Navbar= () => {
       active: currentPath === '/map'
     },
     {
+      path: '/pharmacy',
+      icon: 'fas fa-prescription-bottle-alt',
+      label: 'Nhà thuốc',
+      active: currentPath === '/pharmacy'
+    },
+    {
       path: '/hospitals',
       icon: 'fas fa-hospital',
       label: 'Bệnh viện',

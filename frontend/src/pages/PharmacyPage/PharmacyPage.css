@@ -1,0 +1,28 @@
+.pharmacy-page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+.pharmacy-page-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a73e8;
+  margin-bottom: 25px;
+}
+
+.pharmacy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Nếu muốn kiểu lưới 2 cột trên màn hình lớn */
+@media (min-width: 768px) {
+  .pharmacy-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+}
