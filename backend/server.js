@@ -16,6 +16,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Import routes tổng
 const apiRoutes = require("./routes/index");

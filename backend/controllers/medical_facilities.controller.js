@@ -1,9 +1,21 @@
 const facilityService = require("../services/medical_facilities.service");
 
 module.exports = {
-  async create(req, res) {
+  async create(req, res) { console.log("Body nhận được:", req.body);
     try {
-      const facility = await facilityService.createFacility(req.body);
+      const body = req.body;
+      const payload = {
+      facility_name: body.facility_name, 
+      type_id: body.type_id,
+      address: body.address,
+      phone: body.phone,
+      province_id: body.province_id,
+      services: JSON.stringify(body.services || []),
+      creator_id: req.user.user_id         // từ decoded token
+    };
+
+
+      const facility = await facilityService.createFacility(payload);
       res.status(201).json({
         message: "Tạo cơ sở y tế thành công",
         facility

@@ -22,6 +22,7 @@ MedicalFacility.init({
   },
   facility_point_id: {
     type: DataTypes.STRING,
+    allowNull: true,
     references: {
       model: "locations",
       key: "location_id"

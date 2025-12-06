@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import MapPicker from '../../MapComponents/MapPicker/MapPicker';
 import './FacilityForm.css';
+import { jwtDecode } from "jwt-decode";
 
 const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
   // Đảm bảo workingHours luôn có giá trị mặc định
@@ -17,6 +18,15 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     },
     location: null
   };
+
+  const token = localStorage.getItem("authToken");
+  
+  let decodedToken = null;
+  if (token) {
+    decodedToken = jwtDecode(token);
+  }
+  console.log("decodedToken:", decodedToken);
+  const userId = decodedToken.user_id;
 
   const [formData, setFormData] = useState({
     ...defaultFormData,
@@ -68,8 +78,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
   "An Giang",
   "Đồng Tháp",
   "Cà Mau"
-];
-
+  ];
 
   const [selectedServices, setSelectedServices] = useState([]);
   const serviceOptions = [
@@ -122,12 +131,51 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
-      services: selectedServices
-    });
+    const payload = {
+        facility_name: formData.name,
+        type_id: formData.type,
+        address: formData.address,
+        phone: formData.phone,
+        province_id: formData.province,
+        services: selectedServices,    // array
+        facility_point_id: formData.location,   // nếu có
+        creator_id: userId          // lấy từ token
+      };
+
+      console.log("Payload gửi lên:", {
+  facility_name: formData.name,
+  type_id: formData.type,
+  address: formData.address,
+  phone: formData.phone,
+  province_id: formData.province,
+  services: selectedServices,
+  facility_point_id: formData.location,   // nếu có
+  creator_id: userId  
+});
+
+
+      const token = localStorage.getItem("authToken");
+      const res = await fetch("http://localhost:3001/api/medical-facilities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+         },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        alert("Thêm cơ sở thành công!");
+      } else {
+        alert("Có lỗi xảy ra!");
+      }
+    // onSubmit({
+    //   ...formData,
+    //   services: selectedServices
+    // });
   };
 
 
@@ -191,9 +239,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                     ))}
                   </select>
                 </div>
-
- 
-
               </div>
 
               <div className="col-md-6">
@@ -262,7 +307,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                 )}             
             </div>
 
-            
             <div className="form-actions">
               <button type="button" className="btn btn-primary ms-auto" onClick={nextStep}>
                 Tiếp theo <i className="bi bi-arrow-right ms-1"></i>
@@ -298,45 +342,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
         {currentStep === 3 && (
           <div className="form-step">
 
-
-            {/* <div className="form-group">
-              <label>Giờ làm việc</label>
-              <div className="working-hours">
-                <div className="time-slot">
-                  <label>Buổi sáng</label>
-                  <div className="time-inputs">
-                    <input
-                      type="time"
-                      value={morningHours.start}
-                      onChange={(e) => handleWorkingHoursChange('morning', 'start', e.target.value)}
-                    />
-                    <span>đến</span>
-                    <input
-                      type="time"
-                      value={morningHours.end}
-                      onChange={(e) => handleWorkingHoursChange('morning', 'end', e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="time-slot">
-                  <label>Buổi chiều</label>
-                  <div className="time-inputs">
-                    <input
-                      type="time"
-                      value={afternoonHours.start}
-                      onChange={(e) => handleWorkingHoursChange('afternoon', 'start', e.target.value)}
-                    />
-                    <span>đến</span>
-                    <input
-                      type="time"
-                      value={afternoonHours.end}
-                      onChange={(e) => handleWorkingHoursChange('afternoon', 'end', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div> */}
-
             <div className= "form-group">
               <label>Tóm tắt thông tin:</label>   
 
@@ -350,15 +355,17 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                     <label>Loại hình:</label>
                     <span>{facilityTypes.find(t => t.value === formData.type)?.label}</span>
                   </div>
-                  <div className="summary-item">
-                    <label>Số điện thoại:</label>
-                    <span>{formData.phone || '(Chưa nhập số điện thoại)'}</span>
-                  </div>
-                  { formData.type !== 'pharmacy' && (
+                  {formData.type !== 'pharmacy' && (
+                    <>
+                    <div className="summary-item">
+                      <label>Số điện thoại:</label>
+                      <span>{formData.phone || '(Chưa nhập số điện thoại)'}</span>
+                    </div>
                     <div className="summary-item">
                       <label>Dịch vụ:</label>
                       <span>{selectedServices.length} dịch vụ</span>
                     </div>
+                    </>
                   )}
                   <div className="summary-item" style={{ gridColumn: "span 2" }}>
                     <label>Địa chỉ:</label>
