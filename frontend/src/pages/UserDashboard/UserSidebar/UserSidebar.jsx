@@ -25,6 +25,12 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
       badge: null
     },
     {
+      id: 'users',
+      icon: 'bi bi-people',
+      label: 'Quản lý người dùng',
+      badge: null
+    },
+    {
       id: 'facilities',
       icon: 'bi bi-hospital',
       label: 'Cơ sở y tế',
@@ -65,33 +71,33 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
 
   const getUserDisplayName = () => {
     if (!user) return 'Người dùng';
-    
+
     // Ưu tiên hiển thị username, nếu không có thì dùng email
     return user.user_name || user.name || user.email || 'Người dùng';
   };
 
   const getUserAvatar = () => {
     if (!user) return <i className="bi bi-person-circle"></i>;
-    
+
     // Nếu user có avatar URL
     if (user.avatar) {
       return <img src={user.avatar} alt={getUserDisplayName()} />;
     }
-    
+
     // Nếu có tên, hiển thị chữ cái đầu
     if (user.name || user.username) {
       const name = user.name || user.username;
       const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
       return <span className="avatar-initials">{initials.substring(0, 2)}</span>;
     }
-    
+
     // Mặc định
     return <i className="bi bi-person-circle"></i>;
   };
 
   const getUserRole = () => {
     if (!user) return 'Người dùng';
-    
+
     const roleNames = {
       'admin': 'Quản trị viên',
       'super_admin': 'Super Admin',
@@ -101,7 +107,7 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
       'health_worker': 'Cán bộ y tế',
       'user': 'Người dùng'
     };
-    
+
     return roleNames[user.role] || user.role || 'Người dùng';
   };
 
@@ -109,7 +115,7 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
     // Xóa token và user info khỏi localStorage
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    
+
     // Chuyển hướng về trang login
     window.location.href = '/login';
   };
@@ -168,7 +174,7 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
             )}
           </button>
         ))}
-        
+
         {/* Logout Button */}
         <button
           className="menu-item logout-btn"
