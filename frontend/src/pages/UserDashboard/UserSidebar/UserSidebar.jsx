@@ -149,9 +149,7 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
             {!collapsed && (
               <>
                 <span className="menu-label">{item.label}</span>
-                {item.badge && (
-                  <span className="menu-badge">{item.badge}</span>
-                )}
+                
               </>
             )}
           </button>

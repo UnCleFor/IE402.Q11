@@ -117,7 +117,7 @@ const SearchUserSection = () => {
 
   const handleAdminDashboard = () => {
     // Chuyển hướng đến trang admin nếu user là admin
-    window.location.href = '/admin';
+    window.location.href = '/dashboard';
   };
 
   return (

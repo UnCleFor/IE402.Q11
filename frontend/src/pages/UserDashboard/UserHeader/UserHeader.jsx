@@ -132,12 +132,7 @@ const UserHeader = ({ toggleSidebar, sidebarCollapsed }) => {
 
           <div className="col-auto">
             <div className="header-actions">
-              {/* Search */}
-              <div className="search-box me-3">
-                <i className="bi bi-search"></i>
-                <input type="text" placeholder="Tìm kiếm..." />
-              </div>
-
+   
               {/* Notifications */}
               <div className="dropdown notification-dropdown">
                 <button 

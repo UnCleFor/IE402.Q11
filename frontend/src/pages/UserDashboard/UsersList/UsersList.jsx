@@ -13,18 +13,18 @@ const UsersList = ({ onAddUser }) => {
   // Fetch users and current user info
   useEffect(() => {
     fetchUsers();
-    getCurrentUser();
+    //getCurrentUser();
   }, []);
 
-  const getCurrentUser = async () => {
-    try {
-      // Giả sử bạn có API để lấy thông tin user hiện tại
-      const user = await authService.getCurrentUser();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Error fetching current user:', error);
-    }
-  };
+  // const getCurrentUser = async () => {
+  //   try {
+  //     // Giả sử bạn có API để lấy thông tin user hiện tại
+  //     const user = await authService.getCurrentUser();
+  //     setCurrentUser(user);
+  //   } catch (error) {
+  //     console.error('Error fetching current user:', error);
+  //   }
+  // };
 
   const fetchUsers = async () => {
     try {

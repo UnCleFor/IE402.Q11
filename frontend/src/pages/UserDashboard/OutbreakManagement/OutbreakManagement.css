@@ -2,10 +2,9 @@
   padding: 0;
 }
 
-/* Stats Overview */
 .outbreak-stats-overview {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(4, 1fr); /* 4 cột bằng nhau */
   gap: 1rem;
   margin-top: 1.5rem;
 }
@@ -17,20 +16,32 @@
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #f1f3f4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .stat-value {
-  font-size: 1.8rem;
+  font-size: 2rem; /* Tăng kích thước */
   font-weight: 700;
   color: #2c3e50;
   line-height: 1;
+  margin-bottom: 0.3rem;
 }
 
 .stat-label {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #6c757d;
-  margin-top: 0.5rem;
+  font-weight: 500;
 }
+
 
 /* Alert Banner */
 .alert {
@@ -114,7 +125,7 @@
 }
 
 .map-placeholder {
-  height: 300px;
+  height: 500px;
   background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
   display: flex;
   flex-direction: column;
@@ -357,39 +368,7 @@
   line-height: 1.4;
 }
 
-/* Preventive Measures */
-.preventive-measures {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
-}
 
-.preventive-measures strong {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: #2c3e50;
-}
-
-.measures-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.measure-tag {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-
-.measure-tag.more {
-  background: #f5f5f5;
-  color: #6c757d;
-}
 
 .card-footer {
   padding: 1rem 1.25rem;
@@ -545,4 +524,264 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+/* Styles cho card được chọn */
+.outbreak-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  border: 2px solid transparent;
+}
+
+.outbreak-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.outbreak-card.selected {
+  border-color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.05);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+}
+
+.outbreak-card.selected .card-header {
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.outbreak-card.selected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background-color: #0d6efd;
+  border-radius: 4px 0 0 4px;
+}
+
+/* Ngăn chặn sự kiện click trên các nút trong card */
+.outbreak-card .btn {
+  pointer-events: auto;
+}
+
+/* Map controls */
+.map-controls .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Thêm style cho icon trên card được chọn */
+.outbreak-card .card-header h6 .bi-geo-alt-fill {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Scroll to map button (tùy chọn) */
+.scroll-to-map-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.scroll-to-map-btn:hover {
+  background-color: #0b5ed7;
+  transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .outbreak-card {
+    margin-bottom: 15px;
+  }
+  
+  .outbreak-card.selected {
+    border-width: 1px;
+  }
+}
+
+/* Outbreak Filters */
+.outbreak-filters {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.search-box {
+  position: relative;
+  width: 100%;
+}
+
+.search-box i {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 12px 12px 45px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  background: #f8f9fa;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.tab-btn:hover:not(.active) {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.tab-btn.active {
+  background: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+}
+
+.tab-btn .badge {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+}
+
+.filter-summary {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+  color: #6c757d;
+}
+
+.filter-summary strong {
+  color: #495057;
+}
+
+/* Responsive filters */
+@media (max-width: 768px) {
+  .filter-tabs {
+    flex-direction: column;
+  }
+  
+  .tab-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .search-box input {
+    font-size: 16px; /* Better for mobile */
+  }
+}
+
+/* Additional styles for map legend */
+.map-legend .legend-item span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Empty state improvements */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+}
+
+.empty-state i {
+  font-size: 64px;
+  color: #6c757d;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.empty-state h5 {
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.empty-state p {
+  color: #6c757d;
+  max-width: 500px;
+  margin: 0 auto 20px;
+}
+
+/* Card hover effects */
+.outbreak-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.outbreak-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Active filter indicator */
+.tab-btn.active::after {
+  content: '✓';
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+/* Severity badge in tabs */
+.tab-btn .badge {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
