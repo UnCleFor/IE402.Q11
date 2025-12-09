@@ -88,6 +88,29 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => { //
         return name.includes(q) || addr.includes(q);
     });
 
+    const handleExportReport = () => {
+    console.log('Exporting outbreak report');
+    alert('Đã xuất báo cáo thành công!');
+  };
+
+      // Thống kê theo bộ lọc hiện tại
+    const filteredStats = {
+        showing: filteredPharmacies.length,
+        total: pharmacies.length
+    };
+
+    if (loading) {
+    return (
+      <div className="pharmacies-page">
+        <div className="loading-state">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Đang tải...</span>
+          </div>
+          <p className="mt-3">Đang tải dữ liệu nhà thuốc...</p>
+        </div>
+      </div>
+    );
+  }
 
     return (
         <div className="pharmacies-page">
@@ -98,15 +121,10 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => { //
                     <h2>Quản Lý Nhà Thuốc</h2>
                     <p>Quản lý thông tin các nhà thuốc trên toàn quốc</p>
                 </div>
-
-                <button className="btn btn-primary" onClick={onAddPharmacy}>
-                    <i className="bi bi-plus-circle me-2"></i>
-                    Thêm Nhà Thuốc
-                </button>
             </div>
 
-            {/* Filters */}
-            <div className="pharmacies-controls">
+            {/* Filters and Search*/}
+            <div className="pharmacies-filters">
                 <div className="row g-3">
                     <div className="col-md-6">
                         <div className="search-box">
@@ -120,15 +138,43 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => { //
                         </div>
                     </div>
                 </div>
+
+                {/* Results summary */}
+                <div className="filter-summary">
+                <small>
+                    Đang hiển thị <strong>{filteredStats.showing}</strong> trong tổng số <strong>{filteredStats.total}</strong> nhà thuốc
+                    {searchTerm && ` - Kết quả tìm kiếm cho: "${searchTerm}"`}
+                </small>
+                </div>
             </div>
 
             {/* Table */}
             <div className="pharmacies-table-container">
-                {loading ? (
-                    <div className="loading-state">
-                        <i className="bi bi-arrow-repeat spin"></i> Đang tải dữ liệu...
-                    </div>
-                ) : filteredPharmacies.length > 0 ? (
+                <div className="list-header">
+                <h5>Danh Sách Nhà Thuốc ({filteredPharmacies.length})</h5>
+                    <div className="header-actions">
+                <button 
+                    className="btn btn-primary me-2"
+                    onClick={onAddPharmacy}
+                >
+                    <i className="bi bi-plus-circle me-2"></i>
+                    Thêm Nhà Thuốc
+                </button>
+                        {/* SỬA: dùng setShowForm thay vì onAddFacility prop */}
+                {/* <button className="btn btn-primary" onClick={() => { setEditingFacility(null); setShowForm(true); }}>
+                <i className="bi bi-plus-circle me-2"></i> Thêm Cơ Sở Mới
+                </button> */}
+                <button 
+                    className="btn btn-outline-primary"
+                    onClick={handleExportReport}
+                >
+                    <i className="bi bi-download me-2"></i>
+                    Xuất Báo Cáo
+                </button>
+                </div>
+                </div>
+
+                {filteredPharmacies.length > 0 ? (
                     <div className="table-responsive">
                         <table className="table pharmacies-table">
                             <thead>

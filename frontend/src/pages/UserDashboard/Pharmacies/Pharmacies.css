@@ -22,7 +22,7 @@
   margin: 0;
 }
 
-.pharmacies-controls {
+.pharmacies-filters {
   background: white;
   padding: 1.5rem;
   border-radius: 15px;
@@ -91,6 +91,23 @@
   border-radius: 15px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+}
+
+.list-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: #f8f9fa;
+}
+
+.list-header h5 {
+  margin: 0;
+  color: #2c3e50;
+  font-weight: 600;
 }
 
 .pharmacies-table {

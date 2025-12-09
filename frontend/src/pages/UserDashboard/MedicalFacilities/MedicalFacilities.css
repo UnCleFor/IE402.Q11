@@ -2,6 +2,46 @@
   padding: 0;
 }
 
+.facility-stats-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 cột bằng nhau */
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f1f3f4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-value {
+  font-size: 2rem; /* Tăng kích thước */
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -22,7 +62,7 @@
   margin: 0;
 }
 
-.facilities-controls {
+.facilities-filters {
   background: white;
   padding: 1.5rem;
   border-radius: 15px;
@@ -56,6 +96,33 @@
   border-color: #3498db;
   outline: none;
   box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Facility List */
+.facility-list {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+  overflow: hidden;
+  border: 1px solid #f1f3f4;
+}
+
+.list-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: #f8f9fa;
+}
+
+.list-header h5 {
+  margin: 0;
+  color: #2c3e50;
+  font-weight: 600;
 }
 
 .filter-tabs {
@@ -202,6 +269,17 @@
 .quick-stat .stat-info span {
   color: #6c757d;
   font-size: 0.9rem;
+}
+
+.filter-summary {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+  color: #6c757d;
+}
+
+.filter-summary strong {
+  color: #495057;
 }
 
 /* Responsive */
