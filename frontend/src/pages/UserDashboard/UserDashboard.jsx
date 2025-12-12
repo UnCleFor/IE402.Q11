@@ -33,7 +33,7 @@ const UserDashboard = () => {
   const [editingOutbreak, setEditingOutbreak] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Thêm state loading
-
+ const [refreshOutbreakTrigger, setRefreshOutbreakTrigger] = useState(0);
   const navigate = useNavigate();
   const { user, hasRole, loading } = useAuth();
 
@@ -99,29 +99,25 @@ const UserDashboard = () => {
       let result;
       
       if (editingOutbreak) {
-        // Chỉnh sửa vùng dịch
-        result = await outbreakServices.updateOutbreak(editingOutbreak.outbreak_id || editingOutbreak.id, outbreakData);
+        result = await outbreakServices.updateOutbreak(
+          editingOutbreak.outbreak_id || editingOutbreak.id, 
+          outbreakData
+        );
       } else {
-        // Tạo mới vùng dịch
         result = await outbreakServices.createOutbreak(outbreakData);
       }
       
-      console.log('API response:', result);
+      //console.log('API response:', result);
       
       if (result.success !== false) {
-        // Thành công
-        alert(editingOutbreak ? 'Cập nhật vùng dịch thành công!' : 'Khai báo vùng dịch thành công!');
-        
         // Đóng form
         setShowOutbreakForm(false);
         setEditingOutbreak(null);
         
-        // Nếu đang ở trang quản lý vùng dịch, reload danh sách
-        if (activeSection === 'outbreak') {
-          // Có thể thêm logic reload danh sách ở đây
-        }
+        // TRIGGER RELOAD - quan trọng
+        setRefreshOutbreakTrigger(prev => prev + 1);
+        
       } else {
-        // Thất bại
         alert(result.message || 'Có lỗi xảy ra khi gửi dữ liệu');
       }
     } catch (error) {
@@ -229,6 +225,7 @@ const UserDashboard = () => {
           <OutbreakManagement
             onAddOutbreak={() => setShowOutbreakForm(true)}
             onEditOutbreak={handleEditOutbreak}
+            refreshTrigger={refreshOutbreakTrigger}
           />
         );
       case 'reports':

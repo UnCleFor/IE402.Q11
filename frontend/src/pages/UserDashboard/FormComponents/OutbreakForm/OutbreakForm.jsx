@@ -32,10 +32,12 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
     };
     
     // Nếu có initialData, merge với defaultData
+    
     if (initialData) {
+      // console.log('initialData', initialData);
+      // console.log('defaultData', defaultData);
       return { ...defaultData, ...initialData };
     }
-    
     return defaultData;
   });
 
