@@ -48,12 +48,6 @@ export const routes = [
         isPublic: true
     },
     {
-        path: '/other',
-        page: React.lazy(() => import("../pages/OtherOption/OtherOption")),
-        isShowHeader: false,
-        isPublic: true
-    },
-    {
         path: '/symptom-results',
         page: React.lazy(() => import("../pages/SymptomResultsPage/SymptomResultsPage")),
         isShowHeader: true,
@@ -65,7 +59,7 @@ export const routes = [
         isShowHeader: true,
         isPublic: true
     },
-        {
+    {
         path: '/my-appointments',
         page: React.lazy(() => import("../pages/MyAppointmentsPage/MyAppointmentsPage")),
         isShowHeader: true,
