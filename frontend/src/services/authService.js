@@ -1,3 +1,4 @@
+import { data } from 'react-router-dom';
 import { api } from './axiosServices';
 
 const authService = {
@@ -101,7 +102,11 @@ const authService = {
   deleteUser: async (userId) => {
     try {
       const response = await api.delete(`/users/${userId}`);
-      return response.data;
+      return {
+        data: response.data,
+        success: true,
+        message: 'Xóa tài khoản thành công'
+      };
     } catch (error) {
       console.log('Delete user error:', error.message);
       return {
@@ -149,6 +154,54 @@ const authService = {
       return {
         success: false,
         message: error.message || 'Không thể lấy thông tin người dùng'
+      };
+    }
+  },
+
+  updateProfile: async (userId, data) => {
+    try {
+      const response = await api.put(`/users/${userId}`, data);
+      
+      return {
+        success: true,
+        user: response.data,
+        message: 'Cập nhật hồ sơ thành công'
+      };
+      
+    } catch (error) {
+      // Kiểm tra lỗi email đã tồn tại
+      if (error.response?.status === 400 || error.response?.status === 409) {
+        const errorData = error.response?.data;
+        
+        // Kiểm tra các trường hợp lỗi email
+        if (errorData?.error === 'Validation error') {
+          return {
+            success: false,
+            message: 'Email đã được sử dụng. Vui lòng chọn email khác.'
+          };
+        }
+        
+        if (errorData?.message?.includes('email') || 
+            errorData?.message?.includes('Email') ||
+            errorData?.error?.includes('email')) {
+          return {
+            success: false,
+            message: 'Email đã được sử dụng. Vui lòng chọn email khác.'
+          };
+        }
+        
+        if (errorData?.message) {
+          return {
+            success: false,
+            message: errorData.message
+          };
+        }
+      }
+      
+      // Lỗi khác
+      return {
+        success: false,
+        message: 'Không thể cập nhật hồ sơ. Vui lòng thử lại sau.'
       };
     }
   },

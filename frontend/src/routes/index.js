@@ -3,8 +3,7 @@ import Home from "../pages/HomePage/HomePage"
 import ProtectedRoute from '../components/ProtectedRoute/ProtectedRoute'
 import RoleBasedRoute from "../components/RoleBasedRoute/RoleBasedRoute"
 
-export const routes = [
-    {
+export const routes = [{
         path: '/',
         page: Home,
         isShowHeader: true,
@@ -95,5 +94,11 @@ export const routes = [
         page: React.lazy(() => import("../pages/OutbreakPage/OutbreakPage")),
         isShowHeader: true,
         isPublic: true
-    }
+    },
+    {
+        path: '/profile',
+        page: React.lazy(() => import("../pages/ProfilePage/ProfilePage")),
+        isShowHeader: true,
+        isPublic: false, 
+    },
 ]
