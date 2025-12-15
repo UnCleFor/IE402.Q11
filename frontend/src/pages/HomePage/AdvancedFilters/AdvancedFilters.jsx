@@ -5,7 +5,8 @@ import './AdvancedFilters.css';
 const AdvancedFilters = ({
   filters,
   onFilterChange,
-  onClearFilters
+  onClearFilters,
+  onSearch
 }) => {
   const navigate = useNavigate();
 

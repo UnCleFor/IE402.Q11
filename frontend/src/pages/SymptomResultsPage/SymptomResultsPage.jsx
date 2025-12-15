@@ -729,11 +729,7 @@ const SymptomResults = () => {
                             <div className="facility-title">
                               <h3 className="facility-name">
                                 {facility.name}
-                                {facility.emergencyDepartment && (
-                                  <span className="emergency-badge">
-                                    <i className="bi bi-plus-circle"></i> Có cấp cứu
-                                  </span>
-                                )}
+                               
                               </h3>
                               <div className="facility-meta">
                                 <span className="facility-type">

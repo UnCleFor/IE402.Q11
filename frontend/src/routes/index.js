@@ -67,6 +67,30 @@ export const routes = [
         isPublic: true
     },
     {
+        path: '/symptom-function',
+        page: React.lazy(() => import("../pages/SymptomSearchPage/SymptomSearchPage")),
+        isShowHeader: true,
+        isPublic: true
+    },
+    {
+        path: '/nearbyfacilities-function',
+        page: React.lazy(() => import("../pages/NearbyFacilitiesPage/NearbyFacilitiesPage")),
+        isShowHeader: true,
+        isPublic: true
+    },
+    {
+        path: '/onlinebooking-function',
+        page: React.lazy(() => import("../pages/OnlineBookingPage/OnlineBookingPage")),
+        isShowHeader: true,
+        isPublic: true
+    },
+    {
+        path: '/filtered-function',
+        page: React.lazy(() => import("../pages/FiltersPage/FiltersPage")),
+        isShowHeader: true,
+        isPublic: true
+    },
+    {
         path: '/outbreaks',
         page: React.lazy(() => import("../pages/OutbreakPage/OutbreakPage")),
         isShowHeader: true,

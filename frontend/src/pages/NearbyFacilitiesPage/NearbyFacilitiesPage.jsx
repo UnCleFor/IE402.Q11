@@ -1,273 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
-import './FilteredResultsPage.css';
+import './NearbyFacilitiesPage.css';
 
-// Dữ liệu mẫu đánh giá theo bệnh viện - ĐẶT Ở ĐẦU FILE
-const facilityReviews = {
-  1: [
-    {
-      id: 1,
-      user: 'Nguyễn Văn A',
-      rating: 5,
-      date: '15/10/2023',
-      comment: 'Bác sĩ rất tận tâm, cơ sở vật chất hiện đại. Thời gian chờ khá lâu nhưng đáng giá.',
-      helpful: 12,
-      verified: true,
-      hasImages: true
-    },
-    {
-      id: 2,
-      user: 'Trần Thị B',
-      rating: 4,
-      date: '12/10/2023',
-      comment: 'Dịch vụ tốt, nhân viên thân thiện. Giá cả hợp lý so với chất lượng.',
-      helpful: 8,
-      verified: true,
-      hasImages: false
-    }
-  ],
-  2: [
-    {
-      id: 3,
-      user: 'Mai Thị F',
-      rating: 5,
-      date: '18/10/2023',
-      comment: 'Phòng khám sang trọng, bác sĩ chuyên nghiệp. Giá hơi cao nhưng xứng đáng.',
-      helpful: 9,
-      verified: true,
-      hasImages: true
-    }
-  ],
-  3: [
-    {
-      id: 4,
-      user: 'Vũ Văn I',
-      rating: 4,
-      date: '20/10/2023',
-      comment: 'Giá cả phải chăng, phù hợp với bảo hiểm y tế. Dịch vụ nhanh chóng, ít phải chờ đợi.',
-      helpful: 8,
-      verified: true,
-      hasImages: false
-    }
-  ],
-  4: [
-    {
-      id: 5,
-      user: 'Mẹ bé Tú Anh',
-      rating: 5,
-      date: '22/10/2023',
-      comment: 'Bệnh viện chuyên về nhi khoa tốt nhất. Bác sĩ rất hiểu tâm lý trẻ em.',
-      helpful: 14,
-      verified: true,
-      hasImages: true
-    }
-  ]
-};
-
-// Dữ liệu mẫu - BỔ SUNG NHIỀU TỈNH THÀNH
-const sampleFacilities = [
-  // TP.HCM
-  {
-    id: 1,
-    name: 'Bệnh viện Đa khoa TP.HCM',
-    address: '125 Lý Chính Thắng, Quận 3, TP.HCM',
-    province: 'Hồ Chí Minh',
-    district: 'Quận 3',
-    distance: '2.5',
-    rating: 4.5,
-    reviews: 128,
-    specialties: ['Nội tổng quát', 'Ngoại khoa', 'Cấp cứu', 'Hô hấp', 'Tim mạch'],
-    insurance: ['Bảo hiểm y tế', 'Bảo Việt', 'Bảo hiểm Prudential'],
-    priceRange: 'trung bình',
-    openHours: '24/24',
-    appointmentAvailable: true,
-    waitTime: '15 phút',
-    type: 'hospital',
-    emergencyDepartment: true
-  },
-  {
-    id: 2,
-    name: 'Phòng khám Đa khoa Quốc tế',
-    address: '1 Lê Lợi, Quận 1, TP.HCM',
-    province: 'Hồ Chí Minh',
-    district: 'Quận 1',
-    distance: '1.8',
-    rating: 4.8,
-    reviews: 89,
-    specialties: ['Nhi khoa', 'Tai mũi họng', 'Da liễu', 'Thần kinh'],
-    insurance: ['Bảo hiểm y tế', 'Bảo hiểm Bảo Minh', 'Bảo hiểm Manulife'],
-    priceRange: 'cao',
-    openHours: '07:00 - 20:00',
-    appointmentAvailable: true,
-    waitTime: '30 phút',
-    type: 'clinic',
-    emergencyDepartment: false
-  },
-  // Hà Nội
-  {
-    id: 3,
-    name: 'Bệnh viện Bạch Mai',
-    address: '78 Giải Phóng, Đống Đa, Hà Nội',
-    province: 'Hà Nội',
-    district: 'Đống Đa',
-    distance: '3.5',
-    rating: 4.7,
-    reviews: 215,
-    specialties: ['Tim mạch', 'Thần kinh', 'Cấp cứu', 'Nội tổng quát', 'Hô hấp'],
-    insurance: ['Bảo hiểm y tế', 'Bảo Việt', 'Bảo hiểm Bảo Minh'],
-    priceRange: 'trung bình',
-    openHours: '24/24',
-    appointmentAvailable: true,
-    waitTime: '45 phút',
-    type: 'hospital',
-    emergencyDepartment: true
-  },
-  {
-    id: 4,
-    name: 'Bệnh viện Việt Đức',
-    address: '40 Tràng Thi, Hoàn Kiếm, Hà Nội',
-    province: 'Hà Nội',
-    district: 'Hoàn Kiếm',
-    distance: '2.1',
-    rating: 4.6,
-    reviews: 198,
-    specialties: ['Ngoại khoa', 'Phẫu thuật', 'Cấp cứu', 'Chấn thương'],
-    insurance: ['Bảo hiểm y tế', 'Bảo hiểm Prudential'],
-    priceRange: 'trung bình',
-    openHours: '24/24',
-    appointmentAvailable: true,
-    waitTime: '30 phút',
-    type: 'hospital',
-    emergencyDepartment: true
-  },
-  // Đà Nẵng
-  {
-    id: 5,
-    name: 'Bệnh viện Đà Nẵng',
-    address: '124 Hải Phòng, Hải Châu, Đà Nẵng',
-    province: 'Đà Nẵng',
-    district: 'Hải Châu',
-    distance: '1.5',
-    rating: 4.4,
-    reviews: 76,
-    specialties: ['Nội tổng quát', 'Sản phụ khoa', 'Nhi khoa', 'Cấp cứu'],
-    insurance: ['Bảo hiểm y tế', 'Bảo hiểm Bảo Việt'],
-    priceRange: 'thấp',
-    openHours: '24/24',
-    appointmentAvailable: true,
-    waitTime: '25 phút',
-    type: 'hospital',
-    emergencyDepartment: true
-  },
-  // Cần Thơ
-  {
-    id: 6,
-    name: 'Bệnh viện Đa khoa Trung ương Cần Thơ',
-    address: '315 Nguyễn Văn Linh, Ninh Kiều, Cần Thơ',
-    province: 'Cần Thơ',
-    district: 'Ninh Kiều',
-    distance: '4.2',
-    rating: 4.3,
-    reviews: 92,
-    specialties: ['Nội tổng quát', 'Tim mạch', 'Thần kinh', 'Tiêu hóa'],
-    insurance: ['Bảo hiểm y tế', 'Bảo hiểm AIA'],
-    priceRange: 'trung bình',
-    openHours: '24/24',
-    appointmentAvailable: false,
-    waitTime: '50 phút',
-    type: 'hospital',
-    emergencyDepartment: true
-  },
-  // Hải Phòng
-  {
-    id: 7,
-    name: 'Bệnh viện Việt Tiệp Hải Phòng',
-    address: '1 Nhà Thương, Lê Chân, Hải Phòng',
-    province: 'Hải Phòng',
-    district: 'Lê Chân',
-    distance: '2.8',
-    rating: 4.2,
-    reviews: 67,
-    specialties: ['Nội tổng quát', 'Hô hấp', 'Tiêu hóa', 'Cấp cứu'],
-    insurance: ['Bảo hiểm y tế'],
-    priceRange: 'thấp',
-    openHours: '24/24',
-    appointmentAvailable: true,
-    waitTime: '35 phút',
-    type: 'hospital',
-    emergencyDepartment: true
-  },
-  // Khánh Hòa
-  {
-    id: 8,
-    name: 'Bệnh viện Đa khoa tỉnh Khánh Hòa',
-    address: '19 Yersin, Nha Trang, Khánh Hòa',
-    province: 'Khánh Hòa',
-    district: 'Nha Trang',
-    distance: '3.0',
-    rating: 4.1,
-    reviews: 58,
-    specialties: ['Nội tổng quát', 'Da liễu', 'Tai mũi họng', 'Cấp cứu'],
-    insurance: ['Bảo hiểm y tế', 'Bảo hiểm Manulife'],
-    priceRange: 'trung bình',
-    openHours: '24/24',
-    appointmentAvailable: true,
-    waitTime: '40 phút',
-    type: 'hospital',
-    emergencyDepartment: true
-  },
-  // Bình Dương
-  {
-    id: 9,
-    name: 'Bệnh viện Đa khoa tỉnh Bình Dương',
-    address: '401 Đại lộ Bình Dương, Thủ Dầu Một, Bình Dương',
-    province: 'Bình Dương',
-    district: 'Thủ Dầu Một',
-    distance: '5.5',
-    rating: 4.0,
-    reviews: 45,
-    specialties: ['Nội tổng quát', 'Sản phụ khoa', 'Nhi khoa'],
-    insurance: ['Bảo hiểm y tế'],
-    priceRange: 'thấp',
-    openHours: '07:00 - 22:00',
-    appointmentAvailable: true,
-    waitTime: '55 phút',
-    type: 'hospital',
-    emergencyDepartment: false
-  },
-  // Đồng Nai
-  {
-    id: 10,
-    name: 'Bệnh viện Đa khoa Đồng Nai',
-    address: '5 Phạm Văn Thuận, Biên Hòa, Đồng Nai',
-    province: 'Đồng Nai',
-    district: 'Biên Hòa',
-    distance: '6.2',
-    rating: 4.3,
-    reviews: 81,
-    specialties: ['Nội tổng quát', 'Cấp cứu', 'Ngoại khoa', 'Hô hấp'],
-    insurance: ['Bảo hiểm y tế', 'Bảo hiểm Bảo Việt'],
-    priceRange: 'trung bình',
-    openHours: '24/24',
-    appointmentAvailable: true,
-    waitTime: '60 phút',
-    type: 'hospital',
-    emergencyDepartment: true
-  }
-];
-
-const FilteredResults = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [filteredFacilities, setFilteredFacilities] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState(null);
-  const [activeFilters, setActiveFilters] = useState([]);
+const NearbyFacilitiesPage = () => {
+  // State và logic từ file NearbyFacilities.jsx
+  const [sortBy, setSortBy] = useState('distance');
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationError, setLocationError] = useState('');
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [useManualLocation, setUseManualLocation] = useState(false);
+  const [manualAddress, setManualAddress] = useState('');
+  const [locationSource, setLocationSource] = useState('unknown');
+  const [showFacilities, setShowFacilities] = useState(false);
   const [expandedFacilityId, setExpandedFacilityId] = useState(null);
   const [reviewFilter, setReviewFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('relevance');
-
-  // THÊM STATE CHO BOOKING MODAL
+  
+  // State cho booking modal
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedFacility, setSelectedFacility] = useState(null);
   const [bookingForm, setBookingForm] = useState({
@@ -279,17 +26,374 @@ const FilteredResults = () => {
     reason: '',
     notes: ''
   });
-  const [availableTimes, setAvailableTimes] = useState([
+  
+  const [availableTimes] = useState([
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
     '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
   ]);
+  
   const [availableDoctors, setAvailableDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [bookingStep, setBookingStep] = useState(1);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
+  // Dữ liệu mẫu - Copy từ NearbyFacilities.jsx
+  const facilityReviews = {
+    1: [
+      {
+        id: 1,
+        user: 'Nguyễn Văn A',
+        rating: 5,
+        date: '15/10/2023',
+        comment: 'Bác sĩ rất tận tâm, cơ sở vật chất hiện đại. Thời gian chờ khá lâu nhưng đáng giá.',
+        helpful: 12,
+        verified: true,
+        hasImages: true
+      },
+      {
+        id: 2,
+        user: 'Trần Thị B',
+        rating: 4,
+        date: '12/10/2023',
+        comment: 'Dịch vụ tốt, nhân viên thân thiện. Giá cả hợp lý so với chất lượng.',
+        helpful: 8,
+        verified: true,
+        hasImages: false
+      },
+      {
+        id: 3,
+        user: 'Lê Văn C',
+        rating: 3,
+        date: '10/10/2023',
+        comment: 'Cơ sở hơi đông đúc, nhưng bác sĩ chẩn đoán chính xác. Xét nghiệm nhanh.',
+        helpful: 5,
+        verified: false,
+        hasImages: true
+      },
+      {
+        id: 4,
+        user: 'Phạm Thị D',
+        rating: 5,
+        date: '08/10/2023',
+        comment: 'Đã khám ở đây nhiều lần. Luôn hài lòng với dịch vụ. Bác sĩ tư vấn rất nhiệt tình.',
+        helpful: 15,
+        verified: true,
+        hasImages: false
+      }
+    ],
+    2: [
+      {
+        id: 5,
+        user: 'Mai Thị F',
+        rating: 5,
+        date: '18/10/2023',
+        comment: 'Phòng khám sang trọng, bác sĩ chuyên nghiệp. Giá hơi cao nhưng xứng đáng.',
+        helpful: 9,
+        verified: true,
+        hasImages: true
+      },
+      {
+        id: 6,
+        user: 'Đặng Văn G',
+        rating: 4,
+        date: '16/10/2023',
+        comment: 'Dịch vụ quốc tế, bác sĩ nói tiếng Anh tốt. Thích hợp cho người nước ngoài.',
+        helpful: 6,
+        verified: true,
+        hasImages: false
+      },
+      {
+        id: 7,
+        user: 'Hoàng Văn H',
+        rating: 5,
+        date: '14/10/2023',
+        comment: 'Khám nhi khoa rất tốt. Bác sĩ kiên nhẫn với trẻ em. Phòng chờ có khu vui chơi cho bé.',
+        helpful: 11,
+        verified: true,
+        hasImages: true
+      }
+    ],
+    3: [
+      {
+        id: 8,
+        user: 'Vũ Văn I',
+        rating: 4,
+        date: '20/10/2023',
+        comment: 'Giá cả phải chăng, phù hợp với bảo hiểm y tế. Dịch vụ nhanh chóng, ít phải chờ đợi.',
+        helpful: 8,
+        verified: true,
+        hasImages: false
+      },
+      {
+        id: 9,
+        user: 'Lý Thị K',
+        rating: 3,
+        date: '19/10/2023',
+        comment: 'Cơ sở hơi cũ nhưng dịch vụ ổn. Bác sĩ có kinh nghiệm, nhưng thời gian chờ hơi lâu.',
+        helpful: 4,
+        verified: false,
+        hasImages: false
+      },
+      {
+        id: 10,
+        user: 'Trịnh Văn L',
+        rating: 5,
+        date: '17/10/2023',
+        comment: 'Khám tổng quát tốt, chi phí thấp. Phù hợp với sinh viên và người có thu nhập thấp.',
+        helpful: 10,
+        verified: true,
+        hasImages: true
+      }
+    ],
+    4: [
+      {
+        id: 11,
+        user: 'Mẹ bé Tú Anh',
+        rating: 5,
+        date: '22/10/2023',
+        comment: 'Bệnh viện chuyên về nhi khoa tốt nhất. Bác sĩ rất hiểu tâm lý trẻ em. Bé nhà tôi không sợ khám nữa.',
+        helpful: 14,
+        verified: true,
+        hasImages: true
+      },
+      {
+        id: 12,
+        user: 'Ba bé Minh Đức',
+        rating: 4,
+        date: '21/10/2023',
+        comment: 'Cấp cứu nhi nhanh chóng. Đội ngũ y tế tận tâm, xử lý tình huống khẩn cấp rất chuyên nghiệp.',
+        helpful: 7,
+        verified: true,
+        hasImages: false
+      },
+      {
+        id: 13,
+        user: 'Chị Thanh Hằng',
+        rating: 3,
+        date: '20/10/2023',
+        comment: 'Đông bệnh nhân, chờ lâu. Nhưng bác sĩ giỏi và chuẩn đoán chính xác. Cần cải thiện thời gian chờ.',
+        helpful: 5,
+        verified: false,
+        hasImages: false
+      },
+      {
+        id: 14,
+        user: 'Anh Tuấn Kiệt',
+        rating: 5,
+        date: '18/10/2023',
+        comment: 'Phòng khám sạch sẽ, đồ chơi cho trẻ em nhiều. Bé nhà mình rất thích, không khóc khi đi khám.',
+        helpful: 9,
+        verified: true,
+        hasImages: true
+      }
+    ]
+  };
 
-  // Hàm xử lý xem đánh giá
+  const sampleFacilities = [
+    {
+      id: 1,
+      name: 'Bệnh viện Đa khoa TP.HCM',
+      address: '125 Lý Chính Thắng, Quận 3, TP.HCM',
+      coordinates: { lat: 10.7829, lng: 106.6773 },
+      distance: '2.5',
+      rating: 4.5,
+      reviews: 128,
+      specialties: ['Nội tổng quát', 'Ngoại khoa', 'Cấp cứu', 'Tim mạch'],
+      insurance: ['Bảo hiểm y tế', 'Bảo Việt', 'Prudential', 'AIA'],
+      priceRange: 'trung bình',
+      openHours: '24/24',
+      appointmentAvailable: true,
+      waitTime: '15-30 phút',
+      type: 'hospital',
+      features: ['Cấp cứu 24/7', 'Phòng VIP', 'Đỗ xe miễn phí'],
+      phone: '0283 825 6789',
+      website: 'www.bvdk-tphcm.vn'
+    },
+    {
+      id: 2,
+      name: 'Phòng khám Đa khoa Quốc tế',
+      address: '1 Lê Lợi, Quận 1, TP.HCM',
+      coordinates: { lat: 10.7758, lng: 106.7034 },
+      distance: '1.8',
+      rating: 4.8,
+      reviews: 89,
+      specialties: ['Nhi khoa', 'Tai mũi họng', 'Da liễu', 'Răng hàm mặt'],
+      insurance: ['Bảo hiểm y tế', 'Bảo Minh', 'Manulife', 'Liberty'],
+      priceRange: 'cao',
+      openHours: '07:00 - 20:00',
+      appointmentAvailable: true,
+      waitTime: '20-40 phút',
+      type: 'clinic',
+      features: ['Bác sĩ quốc tế', 'Phiên dịch tiếng Anh', 'Phòng chờ VIP'],
+      phone: '0283 822 1234',
+      website: 'www.pkquocte.com'
+    },
+    {
+      id: 3,
+      name: 'Trung tâm Y tế Quận 5',
+      address: '786 Nguyễn Trãi, Quận 5, TP.HCM',
+      coordinates: { lat: 10.7540, lng: 106.6624 },
+      distance: '3.2',
+      rating: 4.2,
+      reviews: 56,
+      specialties: ['Nội tổng quát', 'Sản phụ khoa', 'Xét nghiệm', 'Chẩn đoán hình ảnh'],
+      insurance: ['Bảo hiểm y tế', 'Bảo hiểm xã hội'],
+      priceRange: 'thấp',
+      openHours: '07:30 - 17:00',
+      appointmentAvailable: true,
+      waitTime: '30-60 phút',
+      type: 'medical-center',
+      features: ['Giá cả hợp lý', 'Đối tượng chính sách', 'Khám BHYT'],
+      phone: '0283 855 4321',
+      website: 'www.ttyt-quan5.gov.vn'
+    },
+    {
+      id: 4,
+      name: 'Bệnh viện Nhi Đồng Thành phố',
+      address: '15 Võ Trường Toản, Quận 1, TP.HCM',
+      coordinates: { lat: 10.7889, lng: 106.6912 },
+      distance: '2.9',
+      rating: 4.7,
+      reviews: 203,
+      specialties: ['Nhi khoa', 'Cấp cứu nhi', 'Dinh dưỡng', 'Tâm lý trẻ em'],
+      insurance: ['Bảo hiểm y tế', 'Bảo Việt', 'AIA', 'Prudential'],
+      priceRange: 'trung bình',
+      openHours: '24/24',
+      appointmentAvailable: false,
+      waitTime: '45-90 phút',
+      type: 'hospital',
+      features: ['Khu vui chơi trẻ em', 'Bác sĩ chuyên khoa nhi', 'Phòng gia đình'],
+      phone: '0283 829 5678',
+      website: 'www.nhidong.org.vn'
+    }
+  ];
+
+  // Các hàm xử lý - Copy từ NearbyFacilities.jsx
+  const getDefaultLocation = () => {
+    return {
+      lat: 10.8231,
+      lng: 106.6297,
+      city: 'Thành phố Hồ Chí Minh',
+      source: 'default',
+      accuracy: 100000,
+      timestamp: Date.now()
+    };
+  };
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const fetchUserLocation = async () => {
+    setIsLoadingLocation(true);
+    setLocationError('');
+
+    setTimeout(() => {
+      const defaultLocation = getDefaultLocation();
+      setUserLocation(defaultLocation);
+      setLocationSource('default');
+      setIsLoadingLocation(false);
+    }, 1000);
+  };
+
+  const getFacilitiesWithDistance = () => {
+    return sampleFacilities.map(facility => {
+      let distance = null;
+      let distanceText = 'Chưa xác định';
+      let isExactDistance = false;
+
+      if (userLocation && facility.coordinates) {
+        const dist = calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          facility.coordinates.lat,
+          facility.coordinates.lng
+        );
+
+        distance = dist;
+
+        if (locationSource === 'manual') {
+          distanceText = `${dist.toFixed(1)} km`;
+          isExactDistance = true;
+        } else {
+          distanceText = `Khoảng ${Math.round(dist)} km`;
+          isExactDistance = false;
+        }
+      }
+
+      return {
+        ...facility,
+        distance,
+        distanceText,
+        isExactDistance,
+        numericDistance: distance !== null ? distance : Infinity
+      };
+    });
+  };
+
+  const getSortedFacilities = () => {
+    const facilitiesWithDist = getFacilitiesWithDistance();
+
+    return [...facilitiesWithDist].sort((a, b) => {
+      switch (sortBy) {
+        case 'distance':
+          if (a.isExactDistance && !b.isExactDistance) return -1;
+          if (!a.isExactDistance && b.isExactDistance) return 1;
+          return a.numericDistance - b.numericDistance;
+        case 'rating':
+          return b.rating - a.rating;
+        case 'price':
+          const priceOrder = { 'thấp': 1, 'trung bình': 2, 'cao': 3 };
+          return priceOrder[a.priceRange] - priceOrder[b.priceRange];
+        default:
+          return 0;
+      }
+    });
+  };
+
+  const handleManualLocationInput = async () => {
+    if (!manualAddress.trim()) {
+      setLocationError('Vui lòng nhập địa chỉ');
+      return;
+    }
+
+    setIsLoadingLocation(true);
+
+    setTimeout(() => {
+      const manualLocation = {
+        lat: 10.8231,
+        lng: 106.6297,
+        address: manualAddress,
+        source: 'manual',
+        accuracy: 50,
+        timestamp: Date.now()
+      };
+
+      setUserLocation(manualLocation);
+      setLocationSource('manual');
+      setUseManualLocation(false);
+      setLocationError('');
+      setIsLoadingLocation(false);
+      setShowFacilities(true);
+    }, 800);
+  };
+
+  const formatTimeAgo = (timestamp) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'vừa xong';
+    return `${minutes} phút trước`;
+  };
+
   const handleViewReviews = (facilityId) => {
     if (expandedFacilityId === facilityId) {
       setExpandedFacilityId(null);
@@ -299,10 +403,8 @@ const FilteredResults = () => {
     setReviewFilter('all');
   };
 
-  // Lấy đánh giá theo facilityId và filter
   const getReviewsForFacility = (facilityId) => {
     const reviews = facilityReviews[facilityId] || [];
-
     return reviews.filter(review => {
       switch (reviewFilter) {
         case '5star':
@@ -317,7 +419,6 @@ const FilteredResults = () => {
     });
   };
 
-  // Tính rating trung bình
   const getAverageRating = (facilityId) => {
     const reviews = facilityReviews[facilityId] || [];
     if (reviews.length === 0) return '0.0';
@@ -325,7 +426,6 @@ const FilteredResults = () => {
     return avg.toFixed(1);
   };
 
-  // Tính toán distribution rating
   const getRatingDistribution = (facilityId) => {
     const reviews = facilityReviews[facilityId] || [];
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
@@ -340,7 +440,6 @@ const FilteredResults = () => {
     return distribution;
   };
 
-  // Lấy thống kê đánh giá
   const getReviewStats = (facilityId) => {
     const reviews = facilityReviews[facilityId] || [];
     const totalReviews = reviews.length;
@@ -357,79 +456,19 @@ const FilteredResults = () => {
     };
   };
 
-  // Tìm kiếm cơ sở phù hợp
-  const findMatchingFacilities = () => {
-    setLoading(true);
-
-    const facilitiesWithScore = sampleFacilities.map(facility => {
-      let relevanceScore = 0;
-      let matchDetails = [];
-
-      // Ưu tiên đánh giá cao
-      relevanceScore += facility.rating * 2;
-      matchDetails.push(`Đánh giá ${facility.rating} sao: +${facility.rating * 2} điểm`);
-
-      // Giảm điểm nếu không có lịch trống
-      if (!facility.appointmentAvailable) {
-        relevanceScore -= 5;
-        matchDetails.push('Không có lịch trống: -5 điểm');
-      }
-
-      return {
-        ...facility,
-        relevanceScore: Math.round(relevanceScore * 100) / 100,
-        matchDetails
-      };
-    });
-
-    // Sắp xếp theo độ phù hợp
-    const sortedFacilities = facilitiesWithScore.sort((a, b) => {
-      if (sortBy === 'relevance') {
-        return b.relevanceScore - a.relevanceScore;
-      } else if (sortBy === 'distance') {
-        return parseFloat(a.distance) - parseFloat(b.distance);
-      } else if (sortBy === 'rating') {
-        return b.rating - a.rating;
-      } else if (sortBy === 'price') {
-        const priceOrder = { 'thấp': 1, 'trung bình': 2, 'cao': 3 };
-        return priceOrder[a.priceRange] - priceOrder[b.priceRange];
-      }
-      return 0;
-    });
-
-    setFilteredFacilities(sortedFacilities);
-    setLoading(false);
-  };
-
-
-  // Hàm lấy cấp độ khẩn cấp
-  function getEmergencyLevelText(level) {
-    switch (level) {
-      case 'high': return { text: 'Cấp độ cao - Cần khám ngay', color: '#dc3545' };
-      case 'medium': return { text: 'Cấp độ trung bình - Khám trong ngày', color: '#ffc107' };
-      case 'low': return { text: 'Cấp độ thấp - Có thể đặt lịch sau', color: '#28a745' };
-      default: return { text: 'Không xác định', color: '#6c757d' };
-    }
-  }
-
-  // HÀM XỬ LÝ ĐẶT LỊCH MỚI
-  const handleBookAppointment = (facilityId) => {
-    const facility = sampleFacilities.find(f => f.id === facilityId);
-    if (!facility) return;
-
+  // Hàm xử lý đặt lịch
+  const handleOpenBookingModal = (facility) => {
     setSelectedFacility(facility);
 
-    // Tạo danh sách bác sĩ mẫu dựa trên chuyên khoa
     const doctors = [
-      { id: 1, name: 'BS. Nguyễn Văn An', specialty: facility.specialties[0] || 'Nội tổng quát', experience: '15 năm' },
-      { id: 2, name: 'BS. Trần Thị Bình', specialty: facility.specialties[0] || 'Nội tổng quát', experience: '10 năm' },
+      { id: 1, name: 'BS. Nguyễn Văn An', specialty: facility.specialties[0], experience: '15 năm' },
+      { id: 2, name: 'BS. Trần Thị Bình', specialty: facility.specialties[0], experience: '10 năm' },
       { id: 3, name: 'TS. Lê Văn Cường', specialty: facility.specialties[0] || 'Nội tổng quát', experience: '20 năm' }
     ];
 
     setAvailableDoctors(doctors);
     setSelectedDoctor(doctors[0]?.id || '');
 
-    // Set default values for booking form
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -450,7 +489,6 @@ const FilteredResults = () => {
     setShowBookingModal(true);
   };
 
-  // Hàm đóng modal đặt lịch
   const handleCloseBookingModal = () => {
     setShowBookingModal(false);
     setSelectedFacility(null);
@@ -458,7 +496,6 @@ const FilteredResults = () => {
     setBookingConfirmed(false);
   };
 
-  // Hàm xử lý thay đổi form
   const handleBookingFormChange = (e) => {
     const { name, value } = e.target;
     setBookingForm(prev => ({
@@ -467,10 +504,8 @@ const FilteredResults = () => {
     }));
   };
 
-  // Hàm chuyển bước đặt lịch
   const handleNextStep = () => {
     if (bookingStep === 1) {
-      // Validate step 1
       if (!bookingForm.name || !bookingForm.phone || !bookingForm.date) {
         alert('Vui lòng điền đầy đủ thông tin bắt buộc');
         return;
@@ -483,12 +518,9 @@ const FilteredResults = () => {
     setBookingStep(prev => prev - 1);
   };
 
-  // Hàm xác nhận đặt lịch
   const handleConfirmBooking = () => {
-    // Generate booking code
     const bookingCode = 'BK-' + Date.now().toString().slice(-8);
 
-    // In thông tin ra console (trong thực tế sẽ gọi API)
     console.log('Booking confirmed:', {
       bookingCode,
       facility: selectedFacility,
@@ -500,346 +532,256 @@ const FilteredResults = () => {
     setBookingStep(4);
   };
 
-  // Hàm in vé
-  const handlePrintTicket = () => {
-    window.print();
-  };
-
-  // Hàm gửi email xác nhận
   const handleSendConfirmation = () => {
     alert(`Đã gửi xác nhận đặt lịch đến ${bookingForm.email || bookingForm.phone}`);
     handleCloseBookingModal();
   };
 
-  // Hàm lọc dữ liệu
-  const applyFilters = (filterData) => {
-    setLoading(true);
-
-    // Tạo danh sách bộ lọc đang áp dụng
-    const active = [];
-    if (filterData.specialty) active.push(`Chuyên khoa: ${filterData.specialty}`);
-    if (filterData.insurance) active.push(`Bảo hiểm: ${filterData.insurance}`);
-    if (filterData.priceRange !== 'all') active.push(`Giá: ${filterData.priceRange === 'thấp' ? 'Thấp' : filterData.priceRange === 'cao' ? 'Cao' : 'Trung bình'}`);
-    if (filterData.workingHours !== 'all') active.push(`Giờ làm việc: ${filterData.workingHours === '24/24' ? '24/24' : 'Hành chính'}`);
-    if (filterData.rating > 0) active.push(`Đánh giá: ${filterData.rating}+`);
-    if (filterData.province) active.push(`Tỉnh/TP: ${filterData.province}`);
-    setActiveFilters(active);
-
-    setTimeout(() => {
-      let results = [...sampleFacilities];
-
-      // Áp dụng từng bộ lọc
-      if (filterData.specialty) {
-        results = results.filter(f => f.specialties.includes(filterData.specialty));
-      }
-
-      if (filterData.insurance) {
-        results = results.filter(f => f.insurance.includes(filterData.insurance));
-      }
-
-      if (filterData.priceRange !== 'all') {
-        results = results.filter(f => f.priceRange === filterData.priceRange);
-      }
-
-      if (filterData.workingHours !== 'all') {
-        if (filterData.workingHours === '24/24') {
-          results = results.filter(f => f.openHours === '24/24');
-        } else if (filterData.workingHours === 'hành_chinh') {
-          results = results.filter(f => f.openHours !== '24/24');
-        }
-      }
-
-      if (filterData.rating > 0) {
-        results = results.filter(f => f.rating >= filterData.rating);
-      }
-
-      // THÊM LỌC THEO TỈNH/THÀNH PHỐ
-      if (filterData.province) {
-        results = results.filter(f => f.province === filterData.province);
-      }
-
-      setFilteredFacilities(results);
-      setLoading(false);
-    }, 1000);
-  };
-
-  // Xử lý khi component mount
   useEffect(() => {
-    if (location.state?.filters) {
-      setFilters(location.state.filters);
-      applyFilters(location.state.filters);
-    } else {
-      // Nếu không có bộ lọc, quay lại trang chủ
-      navigate('/');
-    }
-  }, [location, navigate]);
+    fetchUserLocation();
+  }, []);
 
-
-  const handleEditFilters = () => {
-    navigate(-1);
-  };
-
-  // Hàm format thông tin chi tiết
-  const getFilterDetails = () => {
-    if (!filters) return [];
-
-    const details = [];
-
-    if (filters.specialty) {
-      details.push({
-        icon: 'bi-heart-pulse',
-        label: 'Chuyên khoa',
-        value: filters.specialty,
-        type: 'filter'
-      });
-    }
-
-    if (filters.insurance) {
-      details.push({
-        icon: 'bi-shield-check',
-        label: 'Bảo hiểm',
-        value: filters.insurance,
-        type: 'filter'
-      });
-    }
-
-    if (filters.priceRange && filters.priceRange !== 'all') {
-      const priceText = filters.priceRange === 'thấp' ? 'Thấp' :
-        filters.priceRange === 'cao' ? 'Cao' : 'Trung bình';
-      details.push({
-        icon: 'bi-cash',
-        label: 'Khoảng giá',
-        value: priceText,
-        type: 'range'
-      });
-    }
-
-    if (filters.province) {
-      details.push({
-        icon: 'bi-geo-alt',
-        label: 'Khu vực',
-        value: filters.province,
-        type: 'filter'
-      });
-    }
-
-    return details;
-  };
-
-  // Tính toán thống kê
-  const calculateStats = () => {
-    const avgRating = filteredFacilities.length > 0
-      ? (filteredFacilities.reduce((sum, f) => sum + f.rating, 0) / filteredFacilities.length).toFixed(1)
-      : '0.0';
-
-    const availableAppointments = filteredFacilities.filter(f => f.appointmentAvailable).length;
-    const avgDistance = filteredFacilities.length > 0
-      ? (filteredFacilities.reduce((sum, f) => sum + parseFloat(f.distance), 0) / filteredFacilities.length).toFixed(1)
-      : '0.0';
-
-    return {
-      avgRating,
-      availableAppointments,
-      avgDistance,
-      totalResults: filteredFacilities.length
-    };
-  };
-
-  const stats = calculateStats();
-  const filterDetails = getFilterDetails();
+  const sortedFacilities = getSortedFacilities();
 
   return (
-    <div className="filtered-results-page">
-      {/* Header */}
-      <div className="results-header">
-        <div className="container">
-          <div className="header-content">
-            <button
-              className="back-button"
-              onClick={() => navigate(-1)}
-            >
-              <i className="bi bi-arrow-left"></i> Quay lại
-            </button>
-
-            <div className="search-summary">
-              <h1>
-                <i className="bi bi-search-heart"></i>
-                Kết quả theo bộ lọc
-              </h1>
-
-
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
+    <div className="nearby-facilities-page">
       <div className="container">
-        <div className="results-content">
-          {/* Loading State */}
-          {loading && (
-            <div className="loading-state">
-              <div className="spinner-border" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
-              <p>Đang tìm kiếm cơ sở phù hợp với bộ lọc của bạn...</p>
-            </div>
-          )}
+        <div className="page-header">
+          <h1 className="page-title">
+            <i className="bi bi-hospital me-2"></i>
+            Cơ sở y tế gần bạn
+          </h1>
+          <p className="page-subtitle">
+            Tìm kiếm bệnh viện, phòng khám gần vị trí của bạn
+          </p>
+        </div>
 
-          {/* No Results */}
-          {!loading && filteredFacilities.length === 0 && (
-            <div className="no-results">
-              <div className="no-results-icon">
-                <i className="bi bi-search"></i>
-              </div>
-              <h3>Không tìm thấy cơ sở phù hợp</h3>
-              <p>Không có cơ sở y tế nào đáp ứng tất cả tiêu chí lọc của bạn.</p>
-              <div className="no-results-actions">
-                <button
-                  className="btn btn-primary"
-                  onClick={handleEditFilters}
-                >
-                  <i className="bi bi-funnel me-2"></i> Chỉnh sửa bộ lọc
-                </button>
-                <Link to="/" className="btn btn-outline-primary">
-                  <i className="bi bi-house me-2"></i> Về trang chủ
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Results List */}
-          {!loading && filteredFacilities.length > 0 && (
-            <>
-              <div className="results-list">
-                {filteredFacilities.map((facility, index) => {
-                  const reviews = getReviewsForFacility(facility.id);
-                  const avgRating = getAverageRating(facility.id);
-                  const ratingDistribution = getRatingDistribution(facility.id);
-                  const reviewStats = getReviewStats(facility.id);
-                  const isExpanded = expandedFacilityId === facility.id;
-
-                  return (
-                    <div key={facility.id} className="result-card">
-                      <div className="card-header">
-                        <div className="rank-badge">
-                          <div className="rank-number">#{index + 1}</div>
-                          <div className="rank-label">Xếp hạng</div>
+        <div className="main-content">
+          {/* Copy phần JSX từ NearbyFacilities.jsx từ đây */}
+          <div className="nearby-facilities-section card">
+            <div className="card-body">
+              <div className="facilities-header">
+                <div className="header-main">
+                  <div className="location-info">
+                    {isLoadingLocation ? (
+                      <div className="location-loading">
+                        <div className="spinner-border spinner-border-sm" role="status">
+                          <span className="visually-hidden">Loading...</span>
                         </div>
+                        <span>Đang xác định vị trí của bạn...</span>
                       </div>
+                    ) : userLocation ? (
+                      <div className="location-details">
+                        <span className="location-source">
+                          <i className={`bi ${locationSource === 'manual' ? 'bi-pencil-square' : 'bi-geo'}`}></i>
+                          {locationSource === 'manual' ? 'Địa chỉ thủ công' : 'Vị trí mặc định'}
+                          {userLocation.timestamp && (
+                            <span className="location-time">
+                              ({formatTimeAgo(userLocation.timestamp)})
+                            </span>
+                          )}
+                        </span>
 
-                      <div className="card-body">
-                        <div className="facility-info">
+                        {userLocation.address && (
+                          <div className="location-address">
+                            <i className="bi bi-geo-alt"></i>
+                            {userLocation.address}
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="header-controls">
+                  {showFacilities && (
+                    <span className="facilities-count">{sortedFacilities.length} cơ sở gần bạn</span>
+                  )}
+
+                  <div className="location-actions">
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={fetchUserLocation}
+                      disabled={isLoadingLocation}
+                      title="Làm mới vị trí"
+                    >
+                      <i className="bi bi-arrow-clockwise"></i>
+                    </button>
+
+                    <button
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => {
+                        setUseManualLocation(!useManualLocation);
+                        setManualAddress('');
+                      }}
+                      title="Nhập địa chỉ thủ công"
+                    >
+                      <i className="bi bi-pencil-square"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form nhập địa chỉ thủ công */}
+              {useManualLocation && (
+                <div className="manual-location-input">
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Nhập địa chỉ của bạn để tìm cơ sở gần nhất..."
+                      value={manualAddress}
+                      onChange={(e) => setManualAddress(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleManualLocationInput()}
+                    />
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleManualLocationInput}
+                      disabled={isLoadingLocation}
+                    >
+                      {isLoadingLocation ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm" role="status"></span>
+                          Tìm kiếm
+                        </>
+                      ) : (
+                        'Tìm cơ sở gần đây'
+                      )}
+                    </button>
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={() => setUseManualLocation(false)}
+                    >
+                      Hủy
+                    </button>
+                  </div>
+                  {locationError && (
+                    <div className="alert alert-danger mt-2" role="alert">
+                      <i className="bi bi-exclamation-triangle"></i> {locationError}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Hướng dẫn khi chưa nhập địa chỉ */}
+              {!showFacilities && !useManualLocation && (
+                <div className="location-prompt">
+                  <div className="prompt-content">
+                    <div className="prompt-icon">
+                      <i className="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div className="prompt-text">
+                      <h6>Nhập địa chỉ để tìm cơ sở y tế gần bạn</h6>
+                      <p className="text-muted">
+                        Chúng tôi sẽ hiển thị các bệnh viện, phòng khám gần vị trí của bạn.
+                        <br />
+                        <small>Ví dụ: "123 Đường ABC, Quận 1, TP.HCM"</small>
+                      </p>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => setUseManualLocation(true)}
+                      >
+                        <i className="bi bi-pencil-square me-2"></i>
+                        Nhập địa chỉ ngay
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Danh sách cơ sở y tế (chỉ hiện khi có địa chỉ) */}
+              {showFacilities && (
+                <div className="facilities-list">
+                  {sortedFacilities.map((facility, index) => {
+                    const reviews = getReviewsForFacility(facility.id);
+                    const avgRating = getAverageRating(facility.id);
+                    const ratingDistribution = getRatingDistribution(facility.id);
+                    const reviewStats = getReviewStats(facility.id);
+                    const isExpanded = expandedFacilityId === facility.id;
+                    
+                    // Xác định icon cho loại cơ sở
+                    const getFacilityTypeIcon = (type) => {
+                      switch(type) {
+                        case 'hospital': return 'bi-hospital';
+                        case 'clinic': return 'bi-clipboard2-pulse';
+                        case 'medical-center': return 'bi-building';
+                        default: return 'bi-building';
+                      }
+                    };
+
+                    return (
+                      <div key={facility.id} className="facility-item">
+                        <div className="facility-content-wrapper">
                           <div className="facility-main">
-                            <div className="facility-title">
-                              <h3 className="facility-name">
-                                {facility.name}
-                              </h3>
-                              <div className="facility-meta">
-                                <span className="facility-type">
-                                  <i className="bi bi-building"></i>
-                                  {facility.type === 'hospital' ? 'Bệnh viện' :
-                                    facility.type === 'clinic' ? 'Phòng khám' :
-                                    facility.type === 'specialty-clinic' ? 'Phòng khám chuyên khoa' : 
-                                    facility.type === 'medical-center' ? 'Trung tâm y tế' :
-                                    facility.type === 'specialty-hospital' ? 'Bệnh viện chuyên khoa' :
-                                    facility.type === 'pharmacy' ? 'Nhà thuốc' : 'Cơ sở y tế'}
-                                </span>
-                                <span className="facility-distance">
-                                  <i className="bi bi-geo-alt"></i>
-                                  {facility.distance}
-                                </span>
-                                <span className="facility-rating">
-                                  <i className="bi bi-star-fill"></i>
-                                  {facility.rating} ({facility.reviews} đánh giá)
+                            <div className="facility-header">
+                              <h6 className="facility-name">{facility.name}</h6>
+                              <div className="facility-distance">
+                                <span className={`distance-badge ${facility.isExactDistance ? 'exact' : 'estimated'}`}>
+                                  <i className="bi bi-signpost"></i>
+                                  {facility.distanceText}
+                                  {!facility.isExactDistance && (
+                                    <span className="distance-note"> (ước tính)</span>
+                                  )}
                                 </span>
                               </div>
                             </div>
 
-                            <p className="facility-address">
-                              <i className="bi bi-geo-alt-fill"></i>
-                              {facility.address}
-                            </p>
+                            <div className="facility-body">
+                              <p className="facility-address">
+                                <i className="bi bi-geo-alt"></i> {facility.address}
+                              </p>
 
-                            <div className="facility-specialties">
-                              <div className="specialties-label">
-                                <i className="bi bi-heart-pulse"></i>
-                                Chuyên khoa:
+                              <div className="facility-rating">
+                                <div className="rating-stars">
+                                  {[...Array(5)].map((_, i) => (
+                                    <i
+                                      key={i}
+                                      className={`bi ${i < Math.floor(facility.rating) ? 'bi-star-fill' : i < facility.rating ? 'bi-star-half' : 'bi-star'}`}
+                                    ></i>
+                                  ))}
+                                </div>
+                                <span className="rating-value">{facility.rating}</span>
+                                <span className="reviews-count">({facility.reviews} đánh giá)</span>
                               </div>
-                              <div className="specialties-tags">
+
+                              <div className="facility-tags">
+                                <span className={`price-badge ${facility.priceRange}`}>
+                                  <i className="bi bi-cash"></i>
+                                  {facility.priceRange === 'thấp' ? 'Giá thấp' :
+                                    facility.priceRange === 'cao' ? 'Giá cao' : 'Giá trung bình'}
+                                </span>
+
+                                <span className="hours-badge">
+                                  <i className="bi bi-clock"></i> {facility.openHours}
+                                </span>
+
+                                <span className={`availability-badge ${facility.appointmentAvailable ? 'available' : 'unavailable'}`}>
+                                  <i className="bi bi-calendar-check"></i>
+                                  {facility.appointmentAvailable ? 'Có lịch' : 'Hết lịch'}
+                                </span>
+                              </div>
+
+                              <div className="facility-specialties">
                                 {facility.specialties.map((specialty, idx) => (
-                                  <span
-                                    key={idx}
-                                    className={`specialty-tag ${idx === 0 ? 'primary' : idx === 1 ? 'secondary' : 'default'}`}
-                                  >
-                                    {specialty}
-                                  </span>
+                                  <span key={idx} className="specialty-tag">{specialty}</span>
                                 ))}
                               </div>
                             </div>
                           </div>
 
-                          <div className="facility-details">
-                            <div className="facility-features">
-                              <div className="feature-item">
-                                <div className="feature-icon">
-                                  <i className="bi bi-clock"></i>
-                                </div>
-                                <div className="feature-content">
-                                  <div className="feature-label">Giờ mở cửa</div>
-                                  <div className="feature-value">{facility.openHours}</div>
-                                </div>
-                              </div>
-                              <div className="feature-item">
-                                <div className="feature-icon">
-                                  <i className="bi bi-cash"></i>
-                                </div>
-                                <div className="feature-content">
-                                  <div className="feature-label">Mức giá</div>
-                                  <div className="feature-value">
-                                    {facility.priceRange === 'thấp' ? 'Thấp' :
-                                      facility.priceRange === 'cao' ? 'Cao' : 'Trung bình'}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="feature-item">
-                                <div className="feature-icon">
-                                  <i className="bi bi-shield-check"></i>
-                                </div>
-                                <div className="feature-content">
-                                  <div className="feature-label">Bảo hiểm</div>
-                                  <div className="feature-value">{facility.insurance.length} loại</div>
-                                </div>
-                              </div>
-                              <div className="feature-item">
-                                <div className="feature-icon">
-                                  <i className={`bi ${facility.appointmentAvailable ? 'bi-calendar-check' : 'bi-calendar-x'}`}></i>
-                                </div>
-                                <div className="feature-content">
-                                  <div className="feature-label">Lịch hẹn</div>
-                                  <div className={`feature-value ${facility.appointmentAvailable ? 'text-success' : 'text-danger'}`}>
-                                    {facility.appointmentAvailable ? 'Có sẵn' : 'Hết lịch'}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="facility-actions">
-                          <div className="action-buttons">
+                          <div className="facility-actions">
                             <button
                               className="btn btn-primary"
-                              onClick={() => handleBookAppointment(facility.id)}
+                              onClick={() => handleOpenBookingModal(facility)}
                               disabled={!facility.appointmentAvailable}
                             >
                               <i className="bi bi-calendar-plus"></i>
                               {facility.appointmentAvailable ? 'Đặt lịch ngay' : 'Hết lịch'}
                             </button>
                             <button
-                              className={`btn ${isExpanded ? 'btn-warning' : 'btn-outline-warning'}`}
+                              className={`btn ${isExpanded ? 'btn-info' : 'btn-outline-primary'}`}
                               onClick={() => handleViewReviews(facility.id)}
-                              title={isExpanded ? 'Đóng đánh giá' : 'Xem đánh giá người dùng'}
+                              title="Xem đánh giá người dùng"
                             >
                               <i className={`bi ${isExpanded ? 'bi-chat-left-text-fill' : 'bi-chat-left-text'}`}></i>
                               {isExpanded ? 'Đóng đánh giá' : 'Xem đánh giá'}
@@ -847,7 +789,7 @@ const FilteredResults = () => {
                           </div>
                         </div>
 
-                        {/* Reviews Section - Expandable */}
+                        {/* Phần đánh giá expandable */}
                         {isExpanded && (
                           <div className="facility-reviews">
                             <div className="reviews-header">
@@ -955,16 +897,42 @@ const FilteredResults = () => {
                           </div>
                         )}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Thông báo khi có địa chỉ nhưng không có cơ sở nào */}
+              {showFacilities && sortedFacilities.length === 0 && (
+                <div className="no-facilities-found">
+                  <div className="no-facilities-icon">
+                    <i className="bi bi-search"></i>
+                  </div>
+                  <h6>Không tìm thấy cơ sở y tế trong khu vực</h6>
+                  <p className="text-muted">
+                    Thử nhập địa chỉ khác hoặc mở rộng phạm vi tìm kiếm.
+                  </p>
+                </div>
+              )}
+
+              {/* Gợi ý sử dụng */}
+              {!showFacilities && (
+                <div className="usage-tips">
+                  <div className="tip-item">
+                    <i className="bi bi-lightbulb"></i>
+                    <span>
+                      <strong>Mẹo:</strong> Bạn có thể nhập địa chỉ hiện tại, nơi làm việc
+                      hoặc bất kỳ địa điểm nào bạn muốn tìm cơ sở y tế gần đó.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* BOOKING MODAL */}
+      {/* Modal Booking tập trung - SỬA LẠI */}
       {showBookingModal && selectedFacility && (
         <div className="booking-modal-overlay active">
           <div className="booking-modal-container">
@@ -988,7 +956,7 @@ const FilteredResults = () => {
                   <div className="facility-details">
                     <span className="badge bg-light text-dark me-2">
                       <i className="bi bi-geo-alt me-1"></i>
-                      {selectedFacility.province}
+                      {selectedFacility.distanceText}
                     </span>
                     <span className="badge bg-light text-dark me-2">
                       <i className="bi bi-star-fill me-1"></i>
@@ -1181,7 +1149,6 @@ const FilteredResults = () => {
                       <div className="summary-section">
                         <h6>Thông tin lịch hẹn</h6>
                         <p><strong>Cơ sở:</strong> {selectedFacility.name}</p>
-                        <p><strong>Địa điểm:</strong> {selectedFacility.province} - {selectedFacility.district}</p>
                         <p><strong>Ngày:</strong> {bookingForm.date}</p>
                         <p><strong>Giờ:</strong> {bookingForm.time}</p>
                         {selectedDoctor && (
@@ -1223,9 +1190,6 @@ const FilteredResults = () => {
                         <p><i className="bi bi-building me-2"></i>
                           <strong>Cơ sở:</strong> {selectedFacility.name}
                         </p>
-                        <p><i className="bi bi-geo-alt me-2"></i>
-                          <strong>Địa điểm:</strong> {selectedFacility.province} - {selectedFacility.district}
-                        </p>
                         <p><i className="bi bi-calendar me-2"></i>
                           <strong>Thời gian:</strong> {bookingForm.date} lúc {bookingForm.time}
                         </p>
@@ -1266,15 +1230,13 @@ const FilteredResults = () => {
                     </button>
                   </>
                 ) : bookingConfirmed ? (
-                  <>
-                    <button
-                      className="btn btn-primary"
-                      onClick={handleSendConfirmation}
-                    >
-                      <i className="bi bi-check-circle me-1"></i>
-                      Hoàn tất
-                    </button>
-                  </>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleSendConfirmation}
+                  >
+                    <i className="bi bi-check-circle me-1"></i>
+                    Hoàn tất
+                  </button>
                 ) : null}
               </div>
             </div>
@@ -1282,7 +1244,7 @@ const FilteredResults = () => {
         </div>
       )}
     </div>
-  ); // XÓA THẺ ĐÓNG </div> THỪA Ở ĐÂY
+  );
 };
 
-export default FilteredResults;
+export default NearbyFacilitiesPage;

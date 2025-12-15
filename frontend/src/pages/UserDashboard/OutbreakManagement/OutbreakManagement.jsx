@@ -436,13 +436,7 @@ const OutbreakManagement = ({ onAddOutbreak, onEditOutbreak, refreshTrigger }) =
       <div className="outbreak-filters">
         <div className="filters-header">
           <h6>Bộ Lọc Vùng Dịch</h6>
-          <button 
-            className="btn btn-sm btn-outline-secondary"
-            onClick={resetFilters}
-          >
-            <i className="bi bi-x-lg me-1"></i>
-            Xóa bộ lọc
-          </button>
+          
         </div>
         
         <div className="card filter-card">

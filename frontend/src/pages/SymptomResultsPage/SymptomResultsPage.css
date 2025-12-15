@@ -429,7 +429,7 @@
 
 .emergency-badge {
   background: linear-gradient(135deg, #ff5252, #ff8a80);
-  color: white;
+  color: white ;
   padding: 0.5rem 1rem;
   border-radius: 25px;
   font-size: 0.9rem;

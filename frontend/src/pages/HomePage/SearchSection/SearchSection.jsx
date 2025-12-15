@@ -35,10 +35,10 @@ const SearchSection = () => {
         <div className="row">
           <div className="col-12">
             <div className="section-header text-center mb-5">
-              <h2 className="section-title">
-              <i className="bi bi-search me-2"></i>
-              Tìm Kiếm Cơ Sở Y Tế
-            </h2>
+              <h2 className="section-title">Tìm Kiếm Cơ Sở Y Tế</h2>
+              <p className="section-subtitle">
+                Tìm kiếm nhanh chóng các cơ sở y tế phù hợp với nhu cầu của bạn
+              </p>
             </div>
           </div>
         </div>

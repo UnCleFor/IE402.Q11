@@ -47,10 +47,10 @@ const ServicesSection = () => {
         <div className="row">
           <div className="col-12">
             <div className="section-header text-center mb-5">
-                <h2 className="section-title">
-                    <i className="bi bi-heart-pulse me-2"></i>
-                      Dịch vụ y tế
-                </h2>
+              <h2 className="section-title">Dịch Vụ Y Tế Trực Tuyến</h2>
+              <p className="section-subtitle">
+                Khám phá các dịch vụ y tế số tiện ích dành cho cộng đồng
+              </p>
             </div>
           </div>
         </div>

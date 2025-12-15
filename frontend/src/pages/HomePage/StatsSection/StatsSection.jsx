@@ -58,10 +58,10 @@ const StatsSection = () => {
         <div className="row">
           <div className="col-12">
             <div className="section-header text-center mb-5">
-              <h2 className="section-title">
-              <i className="bi bi-bar-chart me-2"></i>
-              Thống kê y tế
-            </h2>
+              <h2 className="section-title">Thống Kê Y Tế</h2>
+              <p className="section-subtitle">
+                Cập nhật số liệu mới nhất về hệ thống y tế quốc gia
+              </p>
             </div>
           </div>
         </div>

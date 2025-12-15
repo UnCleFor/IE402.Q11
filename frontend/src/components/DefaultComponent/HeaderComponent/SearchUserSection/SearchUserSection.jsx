@@ -184,18 +184,30 @@ const SearchUserSection = () => {
               </Link>
             </li>
             <li>
-              <Link className="dropdown-item" to="/favorites">
-                <i className="bi bi-heart me-2"></i>
-                Đã lưu
+              <Link className="dropdown-item" to="/symptom-function">
+                <i className="bi bi-search-heart me-2"></i>
+                Tìm kiếm theo triệu chứng
               </Link>
             </li>
             <li>
-              <Link className="dropdown-item" to="/reviews">
-                <i className="bi bi-chat-text me-2"></i>
-                Đánh giá của tôi
+              <Link className="dropdown-item" to="/nearbyfacilities-function">
+                <i className="bi bi-hospital me-2"></i>
+                Nơi khám gần nhất
               </Link>
             </li>
-            
+            <li>
+              <Link className="dropdown-item" to="/onlinebooking-function">
+                <i className="bi bi-calendar-check"></i>
+                Đặt lịch khám trực tuyến
+              </Link>
+            </li>
+            <li>
+              <Link className="dropdown-item" to="/filtered-function">
+                <i className="bi bi-funnel"></i>
+                Bộ lọc nâng cao
+              </Link>
+            </li>
+
             {/* Admin menu nếu user là admin */}
             {(user?.role === 'admin' || user?.role === 'super_admin') && (
               <>
