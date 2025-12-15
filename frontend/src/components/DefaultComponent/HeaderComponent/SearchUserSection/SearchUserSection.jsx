@@ -118,7 +118,7 @@ const SearchUserSection = () => {
   return (
     <div className="d-flex align-items-center">
       {/* Ô tìm kiếm */}
-      <div className="search-container me-3">
+      {/* <div className="search-container me-3">
         <form onSubmit={handleSearch}>
           <div className="input-group">
             <input 
@@ -133,7 +133,7 @@ const SearchUserSection = () => {
             </button>
           </div>
         </form>
-      </div>
+      </div> */}
 
       {/* Thông tin user */}
       <div className="dropdown">

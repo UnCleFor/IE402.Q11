@@ -65,5 +65,11 @@ export const routes = [
         page: React.lazy(() => import("../pages/MyAppointmentsPage/MyAppointmentsPage")),
         isShowHeader: true,
         isPublic: true
+    },
+    {
+        path: '/outbreaks',
+        page: React.lazy(() => import("../pages/OutbreakPage/OutbreakPage")),
+        isShowHeader: true,
+        isPublic: true
     }
 ]

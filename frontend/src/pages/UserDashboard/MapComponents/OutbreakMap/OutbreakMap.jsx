@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from "react-leaflet";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import outbreakServices from '../../../../services/outbreakServices';
 import './OutbreakMap.css';
 
 // Fix cho icon marker trong React-Leaflet
@@ -26,9 +25,9 @@ const MapController = ({ outbreakToZoom, outbreakAreas }) => {
         
         // Zoom vào vùng dịch với padding
         map.fitBounds(bounds, {
-          padding: [50, 50], // Padding để không sát mép
-          maxZoom: 18, // Giới hạn zoom tối đa
-          animate: true // Hiệu ứng mượt mà
+          padding: [50, 50],
+          maxZoom: 18,
+          animate: true
         });
 
         // Mở popup của vùng dịch
@@ -39,7 +38,7 @@ const MapController = ({ outbreakToZoom, outbreakAreas }) => {
               <strong>⚠️ ${outbreak.name}</strong>
             </div>
             <div style="margin-bottom: 10px;">
-              <div><strong>Bệnh:</strong> ${outbreak.disease_id}</div>
+              <div><strong>Bệnh:</strong> ${outbreak.disease_name || outbreak.disease_id}</div>
               <div><strong>Số ca:</strong> <span style="color: ${outbreak.severity === 'high' ? '#dc3545' : '#000'}">${outbreak.cases}</span></div>
               <div><strong>Mức độ:</strong> <span style="color: ${outbreak.severity === 'high' ? '#dc3545' : outbreak.severity === 'medium' ? '#fd7e14' : '#28a745'}">
                 ${getSeverityText(outbreak.severity)}
@@ -78,17 +77,16 @@ const formatDate = (dateString) => {
   }
 };
 
-
-
-const OutbreakMap = ({ outbreakId, onOutbreakClick }) => {
-  const [outbreakAreas, setOutbreakAreas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [mapCenter] = useState([10.762622, 106.660172]); // Trung tâm TP.HCM
+const OutbreakMap = ({ 
+  outbreaks = [], // QUAN TRỌNG: Nhận outbreaks từ props thay vì tự fetch
+  onOutbreakClick, 
+  selectedOutbreakId,
+  showLoading = false 
+}) => {
+  const [mapCenter] = useState([10.762622, 106.660172]);
   const [mapZoom] = useState(12);
-  const [selectedOutbreak, setSelectedOutbreak] = useState(null);
   const mapRef = useRef();
-  const isZoomingRef = useRef(false); // Ref để track trạng thái zooming
+  const isZoomingRef = useRef(false);
 
   // Tạo icon cho vùng dịch theo mức độ nghiêm trọng
   const getOutbreakIcon = useCallback((severity) => {
@@ -118,16 +116,42 @@ const OutbreakMap = ({ outbreakId, onOutbreakClick }) => {
     }
   }, []);
 
-  // Hàm xử lý dữ liệu geometry từ API
+  // Hàm xử lý dữ liệu geometry từ API - Sửa để xử lý trực tiếp từ prop
+  const processOutbreakData = useCallback((outbreak) => {
+    const coordinates = processGeometry(outbreak.area_geom);
+    
+    // Tính trung tâm của polygon để đặt marker
+    let center = mapCenter;
+    if (coordinates.length > 0) {
+      const sum = coordinates.reduce((acc, coord) => {
+        return [acc[0] + coord[0], acc[1] + coord[1]];
+      }, [0, 0]);
+      center = [sum[0] / coordinates.length, sum[1] / coordinates.length];
+    }
+
+    return {
+      ...outbreak,
+      id: outbreak.outbreak_id,
+      name: outbreak.outbreak_name,
+      disease_name: outbreak.disease_name || outbreak.disease_id,
+      cases: outbreak.disease_cases,
+      severity: outbreak.severity_level,
+      startDate: outbreak.start_date,
+      endDate: outbreak.end_date,
+      coordinates,
+      center,
+      fillColor: getColorBySeverity(outbreak.severity_level),
+      borderColor: getColorBySeverity(outbreak.severity_level),
+      icon: getOutbreakIcon(outbreak.severity_level)
+    };
+  }, [mapCenter, getColorBySeverity, getOutbreakIcon]);
+
+  // Hàm xử lý geometry
   const processGeometry = useCallback((geometry) => {
     if (!geometry || !geometry.coordinates) return [];
     
     try {
-      // area_geom.coordinates là một mảng các mảng các điểm
-      // Đối với Polygon, chúng ta cần lấy ring đầu tiên
       const polygonCoordinates = geometry.coordinates[0];
-      
-      // Chuyển đổi từ [long, lat] sang [lat, long] cho Leaflet
       return polygonCoordinates.map(coord => [coord[1], coord[0]]);
     } catch (error) {
       console.error('Error processing geometry:', error);
@@ -135,72 +159,21 @@ const OutbreakMap = ({ outbreakId, onOutbreakClick }) => {
     }
   }, []);
 
-  // Fetch dữ liệu vùng dịch
+  // Process outbreaks data từ props
+  const processedOutbreaks = useMemo(() => {
+    if (!outbreaks || outbreaks.length === 0) return [];
+    return outbreaks.map(outbreak => processOutbreakData(outbreak));
+  }, [outbreaks, processOutbreakData]);
+
+  // Theo dõi sự thay đổi của selectedOutbreakId
   useEffect(() => {
-    const fetchOutbreaks = async () => {
-      try {
-        setLoading(true);
-        const response = await outbreakServices.getAllOutbreaks();
-        
-        if (response && response.data) {
-          const processedOutbreaks = response.data.map(outbreak => {
-            const coordinates = processGeometry(outbreak.area_geom);
-            
-            // Tính trung tâm của polygon để đặt marker
-            let center = mapCenter;
-            if (coordinates.length > 0) {
-              const sum = coordinates.reduce((acc, coord) => {
-                return [acc[0] + coord[0], acc[1] + coord[1]];
-              }, [0, 0]);
-              center = [sum[0] / coordinates.length, sum[1] / coordinates.length];
-            }
-
-            return {
-              ...outbreak,
-              id: outbreak.outbreak_id,
-              name: outbreak.outbreak_name,
-              cases: outbreak.disease_cases,
-              severity: outbreak.severity_level,
-              startDate: outbreak.start_date,
-              endDate: outbreak.end_date,
-              coordinates,
-              center,
-              fillColor: getColorBySeverity(outbreak.severity_level),
-              borderColor: getColorBySeverity(outbreak.severity_level),
-              icon: getOutbreakIcon(outbreak.severity_level)
-            };
-          });
-          
-          setOutbreakAreas(processedOutbreaks);
-          
-          // Nếu có outbreakId từ props, set selected outbreak
-          if (outbreakId) {
-            setSelectedOutbreak(outbreakId);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching outbreaks:', err);
-        setError('Không thể tải dữ liệu vùng dịch');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOutbreaks();
-  }, [outbreakId, mapCenter, processGeometry, getColorBySeverity, getOutbreakIcon]);
-
-  // Theo dõi sự thay đổi của outbreakId từ props
-  useEffect(() => {
-    if (outbreakId) {
-      setSelectedOutbreak(outbreakId);
+    if (selectedOutbreakId) {
       isZoomingRef.current = true;
-      
-      // Reset zooming flag sau 1 giây
       setTimeout(() => {
         isZoomingRef.current = false;
       }, 1000);
     }
-  }, [outbreakId]);
+  }, [selectedOutbreakId]);
 
   // Hàm xử lý khi click vào vùng dịch
   const handleOutbreakClick = useCallback((outbreak) => {
@@ -235,7 +208,7 @@ const OutbreakMap = ({ outbreakId, onOutbreakClick }) => {
         </div>
         
         <div style={{ marginBottom: '10px' }}>
-          <div><strong>Bệnh:</strong> {outbreak.disease_id}</div>
+          <div><strong>Bệnh:</strong> {outbreak.disease_name || outbreak.disease_id}</div>
           <div><strong>Số ca:</strong> <span style={{ color: outbreak.severity === 'high' ? '#dc3545' : '#000' }}>{outbreak.cases}</span></div>
           <div><strong>Mức độ:</strong> <span style={{ color: outbreak.severity === 'high' ? '#dc3545' : outbreak.severity === 'medium' ? '#fd7e14' : '#28a745' }}>
             {getSeverityText(outbreak.severity)}
@@ -247,19 +220,45 @@ const OutbreakMap = ({ outbreakId, onOutbreakClick }) => {
           <div><strong>Kết thúc:</strong> {formatDate(outbreak.endDate)}</div>
         </div>
         
-
-        
+        {outbreak.description && (
+          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #eee' }}>
+            <strong>Mô tả:</strong>
+            <p style={{ margin: '5px 0 0 0', fontSize: '0.9em' }}>{outbreak.description}</p>
+          </div>
+        )}
       </div>
     );
   };
 
+  // Empty state khi không có outbreaks
+  if (!showLoading && (!outbreaks || outbreaks.length === 0)) {
+    return (
+      <div className="outbreak-map-container">
+        <div className="map-empty-state">
+          <i className="bi bi-map"></i>
+          <h5>Không có dữ liệu vùng dịch</h5>
+          <p>Không tìm thấy vùng dịch nào phù hợp với bộ lọc</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="outbreak-map-container">
-      {/* Placeholder cho map khi đang loading */}
-    
+      {/* Loading state */}
+      {showLoading && (
+        <div className="map-loading-overlay">
+          <div className="map-loading">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Đang tải...</span>
+            </div>
+            <p className="mt-3">Đang tải bản đồ vùng dịch...</p>
+          </div>
+        </div>
+      )}
       
-      {/* Map thực tế - luôn render nhưng ẩn khi loading */}
-      <div className={`outbreak-map-wrapper ${loading ? 'loading' : 'loaded'}`}>
+      {/* Map */}
+      <div className={`outbreak-map-wrapper ${showLoading ? 'loading' : 'loaded'}`}>
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -267,7 +266,7 @@ const OutbreakMap = ({ outbreakId, onOutbreakClick }) => {
           scrollWheelZoom={true}
           style={{ height: "500px", width: "100%" }}
           whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
-          zoomControl={false} // Tắt control mặc định của Leaflet
+          zoomControl={false}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -276,18 +275,17 @@ const OutbreakMap = ({ outbreakId, onOutbreakClick }) => {
 
           {/* Map controller để zoom vào vùng dịch cụ thể */}
           <MapController 
-            outbreakToZoom={selectedOutbreak} 
-            outbreakAreas={outbreakAreas} 
+            outbreakToZoom={selectedOutbreakId} 
+            outbreakAreas={processedOutbreaks} 
           />
 
-          {/* Hiển thị các vùng dịch dưới dạng polygon */}
-          {!loading && outbreakAreas.map((outbreak, index) => {
+          {/* Hiển thị các vùng dịch từ props */}
+          {!showLoading && processedOutbreaks.map((outbreak, index) => {
             if (!outbreak.coordinates || outbreak.coordinates.length === 0) {
               return null;
             }
 
-            // Kiểm tra xem đây có phải là vùng dịch được chọn không
-            const isSelected = outbreak.id === selectedOutbreak;
+            const isSelected = outbreak.id === selectedOutbreakId;
 
             return (
               <React.Fragment key={outbreak.id || index}>
@@ -328,35 +326,64 @@ const OutbreakMap = ({ outbreakId, onOutbreakClick }) => {
           })}
         </MapContainer>
         
-        {/* Custom zoom controls với z-index thấp hơn */}
-        
+        {/* Custom zoom controls */}
+        <div className="custom-map-controls">
+          <button 
+            className="map-control-btn"
+            onClick={() => mapRef.current?.zoomIn()}
+            title="Zoom in"
+          >
+            <i className="bi bi-plus"></i>
+          </button>
+          <button 
+            className="map-control-btn"
+            onClick={() => mapRef.current?.zoomOut()}
+            title="Zoom out"
+          >
+            <i className="bi bi-dash"></i>
+          </button>
+          <button 
+            className="map-control-btn"
+            onClick={() => {
+              if (mapRef.current) {
+                mapRef.current.setView(mapCenter, mapZoom);
+              }
+            }}
+            title="Reset view"
+          >
+            <i className="bi bi-geo-alt"></i>
+          </button>
+        </div>
       </div>
 
-      {/* Error state */}
-      {error && !loading && (
-        <div className="map-error-overlay">
-          <div className="map-error">
-            <i className="bi bi-exclamation-triangle"></i>
-            <h5>Không thể tải bản đồ</h5>
-            <p>{error}</p>
-            <button 
-              className="btn btn-sm btn-primary mt-2"
-              onClick={() => window.location.reload()}
-            >
-              <i className="bi bi-arrow-clockwise me-1"></i>
-              Tải lại
-            </button>
+      {/* Legend */}
+      <div className="map-legend">
+       
+        <div className="legend-items">
+          <div className="legend-item">
+            <span className="legend-color high"></span>
+            <span>Cao</span>
+          </div>
+          <div className="legend-item">
+            <span className="legend-color medium"></span>
+            <span>Trung bình</span>
+          </div>
+          <div className="legend-item">
+            <span className="legend-color low"></span>
+            <span>Thấp</span>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
 // Props mặc định
 OutbreakMap.defaultProps = {
-  outbreakId: null,
-  onOutbreakClick: null
+  outbreaks: [],
+  onOutbreakClick: null,
+  selectedOutbreakId: null,
+  showLoading: false
 };
 
 export default OutbreakMap;

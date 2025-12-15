@@ -31,7 +31,7 @@ const Navbar= () => {
       active: currentPath === '/hospitals'
     },
     {
-      path: '/outbreak-areas',
+      path: '/outbreaks',
       icon: 'fas fa-virus',
       label: 'Vùng dịch',
       active: currentPath === '/outbreak-areas'
