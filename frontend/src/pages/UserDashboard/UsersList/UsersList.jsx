@@ -21,7 +21,6 @@ const UsersList = ({ onAddUser }) => {
       // Giả sử bạn có API để lấy thông tin user hiện tại
       const user = await authService.getCurrentUser();
       setCurrentUser(user);
-      console.log(currentUser)
     } catch (error) {
       throw error;
     }
@@ -96,7 +95,7 @@ const UsersList = ({ onAddUser }) => {
         month: '2-digit',
         year: 'numeric'
       });
-} catch (error) {
+    } catch (error) {
       console.error('Error formatting date:', error);
       return 'N/A';
     }
@@ -105,38 +104,36 @@ const UsersList = ({ onAddUser }) => {
   const handleDeleteUser = async (userId, userName) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa người dùng "${userName}"?`)) {
       try {
-        // Call API to delete user
-        await authService.deleteUser(userId);
+        setIsLoading(true);
 
-        // Update local state
-        setUsers(users.filter(user => user.user_id !== userId));
-        alert('Đã xóa người dùng thành công!');
+        // Gọi API xóa thật sự
+        const result = await authService.deleteUser(userId);
+
+        if (result && result.success) {
+          // Chỉ xóa khỏi state nếu API thành công
+          setUsers(prevUsers => prevUsers.filter(user => user.user_id !== userId));
+          alert((result.message || 'Đã xóa người dùng thành công!'));
+        } else {
+          // Hiển thị lỗi từ API
+          alert((result?.message || 'Không thể xóa người dùng. Vui lòng thử lại.'));
+        }
       } catch (error) {
-        console.error('Error deleting user:', error);
-        alert('Không thể xóa người dùng. Vui lòng thử lại.');
+        console.error('Error in handleDeleteUser:', error);
+        alert('Đã xảy ra lỗi khi xóa người dùng.');
+      } finally {
+        setIsLoading(false);
       }
     }
   };
 
   const handleRoleChange = async (userId, newRole) => {
-    // Debug
-    console.log('Current User:', currentUser);
-    console.log('Target User ID:', userId);
-
     // Kiểm tra nếu đang thay đổi role của chính mình
     const isCurrent = isCurrentUser(userId);
-    console.log('Is current user?', isCurrent);
 
     if (isCurrent) {
       alert("Bạn không thể thay đổi vai trò của chính mình!");
       return;
     }
-    /////
-
-    // if (isCurrentUser(userId)) {
-    //   alert("Bạn không thể thay đổi vai trò của chính mình!");
-    //   return;
-    // }
 
     const currentUserRole = users.find(user => user.user_id === userId)?.role;
     if (currentUserRole === newRole) return;
@@ -170,7 +167,7 @@ const UsersList = ({ onAddUser }) => {
   };
 
   const isCurrentUser = (userId) => {
-     return String(currentUser.user_id) === String(userId);
+    return String(currentUser.user_id) === String(userId);
   };
 
   const stats = {
@@ -195,7 +192,7 @@ const UsersList = ({ onAddUser }) => {
       {/* Quick Stats */}
       <div className="row mb-4">
         <div className="col-md-4 col-sm-6">
-<div className="quick-stat">
+          <div className="quick-stat">
             <div className="stat-icon">
               <i className="bi bi-people-fill"></i>
             </div>
@@ -282,7 +279,7 @@ const UsersList = ({ onAddUser }) => {
             <i className="bi bi-exclamation-triangle"></i>
             <h5>Có lỗi xảy ra</h5>
             <p>{error}</p>
-<button className="btn btn-primary mt-3" onClick={fetchUsers}>
+            <button className="btn btn-primary mt-3" onClick={fetchUsers}>
               <i className="bi bi-arrow-clockwise me-2"></i>
               Thử lại
             </button>
@@ -346,7 +343,7 @@ const UsersList = ({ onAddUser }) => {
                               <i className="bi bi-trash"></i>
                             </button>
                           )}
-{(user.role === 'admin' || isCurrentUser(user.user_id)) && (
+                          {(user.role === 'admin' || isCurrentUser(user.user_id)) && (
                             <span className="text-muted small">
                               <i className="bi bi-info-circle me-1"></i>
                               Không thể xóa
