@@ -11,6 +11,7 @@ module.exports = {
         //phone: body.phone,
         province_id: body.province_id,
         //services: (body.services || []).join(', '),
+        pharmacy_point_id: body.pharmacy_point_id,
         creator_id: req.user.user_id         // từ decoded token
       };
   

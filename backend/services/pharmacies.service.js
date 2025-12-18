@@ -1,4 +1,5 @@
 const Pharmacy = require("../models/pharmacy.model");
+const Location = require("../models/location.model")
 
 module.exports = {
   async createPharmacy(data) {
@@ -23,7 +24,21 @@ module.exports = {
   async deletePharmacy(id) {
     const pharmacy = await Pharmacy.findByPk(id);
     if (!pharmacy) return null;
-    await pharmacy.destroy();
+
+    const locationId = pharmacy.pharmacy_point_id;
+
+    await Pharmacy.destroy({
+      where: { pharmacy_id: id }
+    });
+
+    console.log("Pharmacy deleted");
+
+    if (locationId) {
+      await Location.destroy({
+        where: { location_id: locationId }
+      });
+    }
+
     return true;
   }
 };

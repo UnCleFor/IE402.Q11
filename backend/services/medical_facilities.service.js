@@ -1,4 +1,5 @@
 const MedicalFacility = require("../models/medical_facility.model");
+const Location = require("../models/location.model")
 
 async function createFacility(data) {
   return await MedicalFacility.create(data);
@@ -21,8 +22,22 @@ async function updateFacility(id, data) {
 async function deleteFacility(id) {
   const facility = await MedicalFacility.findByPk(id);
   if (!facility) return null;
-  await facility.destroy();
-  return facility;
+
+  const locationId = facility.facility_point_id;
+
+  await MedicalFacility.destroy({
+    where: { facility_id: id }
+  });
+
+  console.log("Facility deleted");
+
+  if (locationId) {
+    await Location.destroy({
+      where: { location_id: locationId }
+    });
+  }
+
+  return true;
 }
 
 module.exports = {

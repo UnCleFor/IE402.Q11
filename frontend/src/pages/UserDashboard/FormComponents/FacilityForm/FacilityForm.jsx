@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // THÊM useEffect
+import React, { useState, useEffect, useMemo } from 'react'; // THÊM useEffect
 import MapPicker from '../../MapComponents/MapPicker/MapPicker';
 import './FacilityForm.css';
 import { jwtDecode } from "jwt-decode";
@@ -12,11 +12,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     phone: '',
     province: '',
     services: [],
-    location: null,
-    workingHours: {
-      morning: { start: '', end: '' },
-      afternoon: { start: '', end: '' }
-    }
   };
 
   const token = localStorage.getItem("authToken");
@@ -87,14 +82,22 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     { value: 'Bệnh viện', label: 'Bệnh viện', icon: 'bi bi-hospital' },
     { value: 'Phòng khám', label: 'Phòng khám', icon: 'bi bi-plus-circle' },
     { value: 'Trung tâm y tế', label: 'Trung tâm y tế', icon: 'bi bi-building' },
-    //{ value: 'pharmacy', label: 'Nhà thuốc', icon: 'bi bi-capsule' }
   ];
-  const provinces = [
-    "Hà Nội","Hải Phòng","Đà Nẵng","TP. Hồ Chí Minh","Cần Thơ","Tuyên Quang","Lào Cai",
-    "Thái Nguyên","Phú Thọ","Bắc Ninh","Hưng Yên","Ninh Bình","Quảng Trị","Quảng Ngãi",
-    "Gia Lai","Khánh Hòa","Lâm Đồng","Đắk Lắk","Đồng Nai","Tây Ninh","Vĩnh Long",
-    "An Giang","Đồng Tháp","Cà Mau"
-  ];
+  const [provinces, setProvinces] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/provinces")
+      .then(res => res.json())
+      .then(data => setProvinces(data));
+  }, []);
+
+  const provinceMap = useMemo(() => {
+  const map = {};
+  provinces.forEach(p => {
+    map[String(p.province_id)] = p.province_name;
+  });
+  return map;
+}, [provinces]);
 
   const serviceOptions = [
     'Khám tổng quát',
@@ -116,11 +119,10 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
-  const handleLocationSelect = (location) => {
+  const handleLocationSelect = (point) => {
     setFormData(prev => ({
       ...prev,
-      location,
-      address: location.address || prev.address
+      location: point
     }));
   };
 
@@ -148,6 +150,41 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // tạo location
+    let locationId = null;
+
+    if (formData.location) {
+      const locationPayload = {
+        object_type: "Bệnh viện",
+        coordinates: {
+          type: "Point",
+          coordinates: [
+            formData.location.lng,
+            formData.location.lat 
+          ]
+        }
+      };
+
+      console.log("Creating location:", locationPayload);
+
+      const locRes = await fetch("http://localhost:3001/api/locations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(locationPayload)
+      });
+
+      if (!locRes.ok) {
+        const err = await locRes.json();
+        throw new Error(err.message || "Tạo location thất bại");
+      }
+
+      const locResult = await locRes.json();
+      locationId = locResult.location_id;
+    }
+
     // Lấy ID cho edit mode
     const facilityId = initialData?.facility_id || initialData?.id;
     
@@ -164,8 +201,8 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
       address: formData.address,
       phone: formData.phone,
       province_id: formData.province,
-      services: JSON.stringify(selectedServices),
-      facility_point_id: formData.location,
+      services: selectedServices,
+      facility_point_id: locationId,
       creator_id: userId
     };
 
@@ -333,7 +370,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                   >
                     <option value="">-- Chọn tỉnh/thành --</option>
                     {provinces.map((p) => (
-                      <option key={p} value={p}>{p}</option>
+                      <option key={p.province_id} value={p.province_id}>{p.province_name}</option>
                     ))}
                   </select>
                 </div>
@@ -465,7 +502,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                   </div>
                   <div className="summary-item">
                     <label>Tỉnh/Thành:</label>
-                    <span>{formData.province || '(Chưa chọn)'}</span>
+                    <span>{provinceMap[formData.province] || '(Chưa chọn)'}</span>
                   </div>
                   <div className="summary-item">
                     <label>Số điện thoại:</label>

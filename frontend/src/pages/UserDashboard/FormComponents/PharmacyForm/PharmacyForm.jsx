@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import MapPicker from '../../MapComponents/MapPicker/MapPicker';
 import './PharmacyForm.css';
 import { jwtDecode } from "jwt-decode";
@@ -10,7 +10,6 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
     address: '',
     phone: '',
     province: '',
-    location: null
   };
 
   const token = localStorage.getItem("authToken");
@@ -42,12 +41,21 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const prevStep = () => setCurrentStep(prev => prev - 1);
 
-  const provinces = [
-    "Hà Nội","Hải Phòng","Đà Nẵng","TP. Hồ Chí Minh","Cần Thơ","Tuyên Quang","Lào Cai",
-    "Thái Nguyên","Phú Thọ","Bắc Ninh","Hưng Yên","Ninh Bình","Quảng Trị","Quảng Ngãi",
-    "Gia Lai","Khánh Hòa","Lâm Đồng","Đắk Lắk","Đồng Nai","Tây Ninh","Vĩnh Long",
-    "An Giang","Đồng Tháp","Cà Mau"
-  ];
+  const [provinces, setProvinces] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/provinces")
+      .then(res => res.json())
+      .then(data => setProvinces(data));
+  }, []);
+
+  const provinceMap = useMemo(() => {
+  const map = {};
+  provinces.forEach(p => {
+    map[String(p.province_id)] = p.province_name;
+  });
+  return map;
+}, [provinces]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -56,21 +64,55 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
-  const handleLocationSelect = (location) => {
+  const handleLocationSelect = (point) => {
     setFormData(prev => ({
       ...prev,
-      location,
-      address: location.address
+      location: point
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // tạo location
+    let locationId = null;
+
+    if (formData.location) {
+      const locationPayload = {
+        object_type: "Nhà thuốc",
+        coordinates: {
+          type: "Point",
+          coordinates: [
+            formData.location.lng,
+            formData.location.lat 
+          ]
+        }
+      };
+
+      console.log("Creating location:", locationPayload);
+
+      const locRes = await fetch("http://localhost:3001/api/locations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(locationPayload)
+      });
+
+      if (!locRes.ok) {
+        const err = await locRes.json();
+        throw new Error(err.message || "Tạo location thất bại");
+      }
+
+      const locResult = await locRes.json();
+      locationId = locResult.location_id;
+    }
+
     // Tạo payload phù hợp cho cả create và update
     const payload = {
       pharmacy_name: formData.name,  // Map từ formData.name
-      pharmacy_point_id: formData.location,
+      pharmacy_point_id: locationId,
       creator_id: userId,
       address: formData.address,
       province_id: formData.province
@@ -172,7 +214,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
               >
                 <option value="">-- Chọn tỉnh/thành --</option>
                 {provinces.map((p) => (
-                  <option key={p} value={p}>{p}</option>
+                  <option key={p.province_id} value={p.province_id}>{p.province_name}</option>
                 ))}
               </select>
             </div>
@@ -242,11 +284,11 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
                   </div>
                   <div className="summary-item">
                     <label>Tỉnh/Thành:</label>
-                    <span>{formData.province || '(Chưa chọn)'}</span>
+                    <span>{provinceMap[formData.province] || '(Chưa chọn)'}</span>
                   </div>
                   <div className="summary-item" style={{ gridColumn: 'span 2' }}>
                     <label>Địa chỉ:</label>
-                    <span>{formData.address || '(Chưa nhập)'}</span>
+                    <span>{formData.address || '(Chưa nhập địa chỉ)'}</span>
                   </div>
                   {mode === 'edit' && initialData && (
                     <div className="summary-item">
