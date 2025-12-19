@@ -1,53 +1,60 @@
 import React, { useEffect, useState } from "react";
-import PharmacyCard from "../../components/DefaultComponent/Pharmacy/PharmacyCard";
+import MedicalFacilityCard from "../../components/DefaultComponent/MedicalFacilityCard/MedicalFacilityCard";
 import axios from "axios";
-import "./PharmacyPage.css";
+import "./MedicalFacilityPage.css";
 
-export default function PharmacyPage() {
-  const [pharmacies, setPharmacies] = useState([]);
-  const [filteredPharmacies, setFilteredPharmacies] = useState([]);
+export default function MedicalFacilityPage() {
+  const [facilities, setFacilities] = useState([]);
+  const [filteredFacilities, setFilteredFacilities] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(9); // 9 items per page (3x3 grid)
+  const [itemsPerPage, setItemsPerPage] = useState(9);
 
   useEffect(() => {
     setLoading(true);
-    axios.get("http://localhost:3001/api/pharmacies")
+    axios.get("http://localhost:3001/api/medical-facilities")
       .then(res => {
-        setPharmacies(res.data);
-        setFilteredPharmacies(res.data);
+        console.log("Dữ liệu cơ sở y tế:", res.data);
+        setFacilities(res.data);
+        setFilteredFacilities(res.data);
         setLoading(false);
       })
       .catch(err => {
-        console.log(err);
-        setError("Không thể tải danh sách nhà thuốc. Vui lòng thử lại sau.");
+        console.log("Lỗi khi tải cơ sở y tế:", err);
+        setError("Không thể tải danh sách cơ sở y tế. Vui lòng thử lại sau.");
         setLoading(false);
       });
   }, []);
 
   useEffect(() => {
     if (searchTerm.trim() === "") {
-      setFilteredPharmacies(pharmacies);
+      setFilteredFacilities(facilities);
     } else {
-      const filtered = pharmacies.filter(pharmacy =>
-        pharmacy.pharmacy_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pharmacy.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pharmacy.ward?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pharmacy.district?.toLowerCase().includes(searchTerm.toLowerCase())
+      const filtered = facilities.filter(facility =>
+        facility.facility_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        facility.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        facility.services?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        facility.phone?.includes(searchTerm)
       );
-      setFilteredPharmacies(filtered);
+      setFilteredFacilities(filtered);
     }
-    // Reset về trang 1 khi tìm kiếm
     setCurrentPage(1);
-  }, [searchTerm, pharmacies]);
+  }, [searchTerm, facilities]);
 
+ 
+  const countActiveFacilities = () => {
+    return facilities.filter(f => f.status === 'active').length;
+  };
+
+  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredPharmacies.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredPharmacies.length / itemsPerPage);
+  const currentItems = filteredFacilities.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredFacilities.length / itemsPerPage);
+
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   
@@ -63,6 +70,7 @@ export default function PharmacyPage() {
     }
   };
 
+ 
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPagesToShow = 5;
@@ -91,16 +99,16 @@ export default function PharmacyPage() {
     
     return pageNumbers;
   };
-  
-  if (loading) {
+
+    if (loading) {
     return (
-      <div className="pharmacy-page loading">
+      <div className="medical-facility-page loading">
         <div className="container">
           <div className="loading-state">
             <div className="spinner-border text-primary" role="status">
               <span className="visually-hidden">Đang tải...</span>
             </div>
-            <p className="mt-3">Đang tải danh sách nhà thuốc...</p>
+            <p className="mt-3">Đang tải danh sách cơ sở y tế...</p>
           </div>
         </div>
       </div>
@@ -109,7 +117,7 @@ export default function PharmacyPage() {
 
   if (error) {
     return (
-      <div className="pharmacy-page error">
+      <div className="medical-facility-page error">
         <div className="container">
           <div className="error-state">
             <i className="bi bi-exclamation-triangle"></i>
@@ -126,28 +134,37 @@ export default function PharmacyPage() {
   }
 
   return (
-    <div className="pharmacy-page">
-      <div className="pharmacy-hero">
+    <div className="medical-facility-page">
+      <div className="facility-hero">
         <div className="container">
-          <div className="pharmacy-hero-content">
-            <h1 className="pharmacy-hero-title">Danh Sách Nhà Thuốc</h1>
-            <p className="pharmacy-hero-description">
-              Tìm kiếm và khám phá các nhà thuốc uy tín trong khu vực
+          <div className="facility-hero-content">
+            <h1 className="facility-hero-title">Danh sách Cơ sở Y tế</h1>
+            <p className="facility-hero-description">
+              Tìm kiếm và khám phá các cơ sở y tế uy tín trong khu vực
             </p>
           </div>
           
-          <div className="pharmacy-stats">
+          <div className="facility-stats">
             <div className="stat-card">
               <div className="stat-icon">
                 <i className="bi bi-hospital"></i>
               </div>
               <div className="stat-content">
-                <div className="stat-value">{filteredPharmacies.length}</div>
+                <div className="stat-value">{facilities.length}</div>
                 <div className="stat-label">
-                  Nhà thuốc
-                  {filteredPharmacies.length !== pharmacies.length && (
-                    <span className="stat-sub"> / {pharmacies.length}</span>
-                  )}
+                  Tổng cơ sở y tế
+                </div>
+              </div>
+            </div>
+            
+            <div className="stat-card">
+              <div className="stat-icon">
+                <i className="bi bi-check-circle"></i>
+              </div>
+              <div className="stat-content">
+                <div className="stat-value">{countActiveFacilities()}</div>
+                <div className="stat-label">
+                  Đang hoạt động
                 </div>
               </div>
             </div>
@@ -167,13 +184,13 @@ export default function PharmacyPage() {
         </div>
       </div>
 
-      <div className="pharmacy-container">
+      <div className="facility-container">
         <div className="search-container">
           <div className="search-box">
             <i className="bi bi-search search-icon"></i>
             <input
               type="text"
-              placeholder="Tìm kiếm nhà thuốc theo tên, địa chỉ..."
+              placeholder="Tìm kiếm cơ sở y tế theo tên, địa chỉ, dịch vụ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -189,45 +206,56 @@ export default function PharmacyPage() {
           </div>
           <div className="search-info">
             <i className="bi bi-info-circle me-2"></i>
-            Đang hiển thị {filteredPharmacies.length} nhà thuốc
+            Đang hiển thị {filteredFacilities.length} cơ sở y tế
             {searchTerm && ` cho "${searchTerm}"`}
           </div>
         </div>
 
-        {!loading && !error && filteredPharmacies.length === 0 && (
-          <div className="empty-state">
+ 
+        {!loading && !error && filteredFacilities.length === 0 && (
+           <div className="empty-state">
               <i className="bi bi-hospital"></i>
-            <h5>Không tìm thấy nhà thuốc</h5>
-            <p>Không có nhà thuốc nào phù hợp với từ khóa tìm kiếm của bạn.</p>
-            <button 
-              className="btn btn-outline-primary mt-2"
-              onClick={() => setSearchTerm("")}
-            >
-              <i className="bi bi-funnel me-2"></i>Xóa bộ lọc
-            </button>
+            <h5>Không tìm thấy cơ sở y tế</h5>
+            <p>
+              {searchTerm
+                ? `Không có cơ sở y tế nào phù hợp với từ khóa "${searchTerm}"`
+                : "Không có cơ sở y tế nào trong hệ thống"}
+            </p>
+            {searchTerm && (
+              <button 
+                className="clear-filter-btn"
+                onClick={() => setSearchTerm("")}
+              >
+                <i className="bi bi-funnel me-2"></i>Xóa tìm kiếm
+              </button>
+            )}
           </div>
         )}
 
-        {!loading && !error && filteredPharmacies.length > 0 && (
+
+        {!loading && !error && filteredFacilities.length > 0 && (
           <>
-            <h2 className="pharmacy-section-title">
+            <h2 className="facility-section-title">
               <div className="title-content">
                 <i className="bi bi-list-check me-2"></i>
-                Danh sách nhà thuốc
+                Danh sách cơ sở y tế
               </div>
             </h2>
             
+ 
             <div className="pagination-info">
-              Hiển thị {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredPharmacies.length)} trên tổng số {filteredPharmacies.length} nhà thuốc
+              Hiển thị {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredFacilities.length)} trên tổng số {filteredFacilities.length} cơ sở y tế
             </div>
             
-            <div className="pharmacy-grid">
-              {currentItems.map(ph => (
-                <PharmacyCard key={ph.pharmacy_id} pharmacy={ph} />
+            <div className="facility-list-single">
+              {currentItems.map(facility => (
+                  <div key={facility.facility_id} className="facility-card-wrapper">
+                  <MedicalFacilityCard facility={facility} />
+                </div>
               ))}
             </div>
 
- 
+
             {totalPages > 1 && (
               <div className="pagination-container">
                 <nav className="pagination">
@@ -264,14 +292,14 @@ export default function PharmacyPage() {
                   </button>
                 </nav>
                 
-                
+  
                 <div className="items-per-page">
                   <span className="items-per-page-label">Hiển thị:</span>
                   <select 
                     value={itemsPerPage}
                     onChange={(e) => {
                       setItemsPerPage(Number(e.target.value));
-                      setCurrentPage(1); // Reset về trang 1 khi thay đổi số item
+                      setCurrentPage(1);
                     }}
                     className="items-per-page-select"
                   >
@@ -285,12 +313,13 @@ export default function PharmacyPage() {
             )}
           </>
         )}
-       
-        <div className="pharmacy-footer-note">
+
+   
+        <div className="facility-footer-note">
           <p>
             <i className="bi bi-info-circle me-2"></i>
-            <strong>Lưu ý:</strong> Thông tin nhà thuốc được cập nhật thường xuyên. 
-            Vui lòng liên hệ trực tiếp để xác nhận giờ mở cửa và tình trạng thuốc.
+            <strong>Lưu ý:</strong> Thông tin cơ sở y tế được cập nhật thường xuyên. 
+            Vui lòng liên hệ trực tiếp để xác nhận giờ làm việc và dịch vụ hiện có.
           </p>
         </div>
       </div>

@@ -25,10 +25,10 @@ const Navbar= () => {
       active: currentPath === '/pharmacy'
     },
     {
-      path: '/hospitals',
+      path: '/medical-facility',
       icon: 'fas fa-hospital',
-      label: 'Bệnh viện',
-      active: currentPath === '/hospitals'
+      label: 'Cơ sở y tế',
+      active: currentPath === '/medical-facility'
     },
     {
       path: '/outbreaks',

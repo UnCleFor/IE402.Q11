@@ -1,11 +1,13 @@
+/* MedicalFacilityPage.css */
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css");
 
-.pharmacy-page {
+.medical-facility-page {
   min-height: 100vh;
   background-color: #f8f9fa;
 }
 
-.pharmacy-hero {
+/* Hero Section */
+.facility-hero {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 4rem 0;
@@ -18,25 +20,26 @@
   padding: 0 20px;
 }
 
-.pharmacy-hero-content {
+.facility-hero-content {
   text-align: center;
   margin-bottom: 3rem;
 }
 
-.pharmacy-hero-title {
+.facility-hero-title {
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 1rem;
 }
 
-.pharmacy-hero-description {
+.facility-hero-description {
   font-size: 1.2rem;
   opacity: 0.9;
   max-width: 600px;
   margin: 0 auto;
 }
 
-.pharmacy-stats {
+/* Facility Stats */
+.facility-stats {
   display: flex;
   justify-content: center;
   gap: 2rem;
@@ -82,18 +85,21 @@
   opacity: 0.8;
   margin-top: 0.5rem;
 }
+
 .stat-sub {
   font-size: 0.8rem;
   opacity: 0.7;
   margin-left: 0.25rem;
 }
 
-.pharmacy-container {
+/* Main Container */
+.facility-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px 60px;
 }
 
+/* Search Container */
 .search-container {
   background: white;
   border-radius: 15px;
@@ -164,43 +170,54 @@
   justify-content: center;
 }
 
-.pharmacy-section-title {
+/* Section Title */
+.facility-section-title {
   font-size: 2rem;
   color: #333;
-  margin: 2.5rem 0 3rem; 
+  margin: 2.5rem 0 2rem;
   text-align: center;
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding-bottom: 1rem; 
+  gap: 1rem;
 }
 
-.pharmacy-section-title::after {
+.facility-section-title .title-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.facility-section-title::after {
   content: '';
   display: block;
   width: 80px;
   height: 4px;
   background: linear-gradient(to right, #667eea, #764ba2);
   border-radius: 2px;
-  position: absolute;
-  bottom: 0; 
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 1.5rem; 
+  margin-top: 0.5rem;
 }
 
-.pharmacy-grid {
+/* Facility Grid */
+.facility-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 2rem;
   margin-bottom: 3rem;
 }
 
-
-.loading-container {
+/* Loading, Error, Empty States */
+.loading-container,
+.error-container,
+.empty-container {
   text-align: center;
-  padding: 4rem 0;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  margin: 3rem 0;
 }
 
 .loading-spinner {
@@ -218,94 +235,21 @@
   100% { transform: rotate(360deg); }
 }
 
-.loading-container p {
-  color: #6c757d;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-
-.error-container {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-  margin: 3rem 0;
-}
-
-.error-icon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  color: #ff6b6b;
-}
-
-.error-container h3 {
-  color: #333;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-}
-
-.error-container p {
-  color: #6c757d;
-  max-width: 400px;
-  margin: 0 auto 1.5rem;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.retry-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 50px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.retry-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-}
-
-
-.empty-container {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-  margin: 3rem 0;
-}
-
+.error-icon,
 .empty-icon {
   font-size: 4rem;
   margin-bottom: 1.5rem;
+}
+
+.error-icon {
+  color: #ff6b6b;
+}
+
+.empty-icon {
   color: #667eea;
 }
 
-.empty-container h3 {
-  color: #333;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-}
-
-.empty-container p {
-  color: #6c757d;
-  max-width: 400px;
-  margin: 0 auto 1.5rem;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
+.retry-btn,
 .clear-filter-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -321,95 +265,10 @@
   justify-content: center;
 }
 
+.retry-btn:hover,
 .clear-filter-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-}
-
-
-.pharmacy-footer-note {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-left: 4px solid #667eea;
-  padding: 1.5rem;
-  border-radius: 10px;
-  margin-top: 3rem;
-}
-
-.pharmacy-footer-note p {
-  margin: 0;
-  color: #495057;
-  line-height: 1.6;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: flex-start;
-}
-
-.pharmacy-footer-note strong {
-  color: #667eea;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .pharmacy-hero-title {
-    font-size: 2.2rem;
-  }
-  
-  .pharmacy-hero-description {
-    font-size: 1rem;
-  }
-  
-  .pharmacy-stats {
-    gap: 1rem;
-  }
-  
-  .stat-card {
-    min-width: 140px;
-    padding: 1rem;
-  }
-  
-  .stat-value {
-    font-size: 1.5rem;
-  }
-  
-  .pharmacy-hero {
-    padding: 2rem 0;
-  }
-  
-  .pharmacy-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .pharmacy-section-title {
-    font-size: 1.8rem;
-  }
-}
-
-@media (max-width: 576px) {
-  .pharmacy-stats {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .stat-card {
-    width: 100%;
-    max-width: 250px;
-  }
-  
-  .search-container {
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .search-input {
-    padding: 0.85rem 3rem 0.85rem 3rem;
-    font-size: 0.95rem;
-  }
-  
-  .pharmacy-section-title {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
 }
 
 /* Pagination Styles */
@@ -535,8 +394,64 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* Footer Note */
+.facility-footer-note {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-left: 4px solid #667eea;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-top: 3rem;
+}
 
+.facility-footer-note p {
+  margin: 0;
+  color: #495057;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+.facility-footer-note strong {
+  color: #667eea;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
+  .facility-hero-title {
+    font-size: 2.2rem;
+  }
+  
+  .facility-hero-description {
+    font-size: 1rem;
+  }
+  
+  .facility-stats {
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    min-width: 140px;
+    padding: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .facility-hero {
+    padding: 2rem 0;
+  }
+  
+  .facility-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .facility-section-title {
+    font-size: 1.8rem;
+  }
+  
   .pagination-pages {
     gap: 0.125rem;
   }
@@ -553,9 +468,33 @@
     flex-direction: column;
     gap: 0.25rem;
   }
+
+  .facility-list-single {
+    gap: 1rem;
+  }
 }
 
 @media (max-width: 576px) {
+  .facility-stats {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .stat-card {
+    width: 100%;
+    max-width: 250px;
+  }
+  
+  .search-container {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .search-input {
+    padding: 0.85rem 3rem 0.85rem 3rem;
+    font-size: 0.95rem;
+  }
+  
   .pagination-container {
     gap: 1rem;
   }
@@ -571,60 +510,270 @@
   }
 }
 
+/* MedicalFacilityPage.css - Thêm các phần sau */
 
-.pharmacy-page.loading {
+/* Filter Section */
+.filter-section {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+/* Type Filter */
+.type-filter {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.type-filter-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.type-filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.type-filter-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: white;
+  color: #495057;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.type-filter-btn:hover {
+  background: #f8f9fa;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.type-filter-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+}
+
+/* Badge Count in Title */
+.badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  background: #667eea;
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+/* Type Summary */
+.type-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+}
+
+.type-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.type-summary-item i {
+  font-size: 1.2rem;
+}
+
+.type-summary-item strong {
+  color: #667eea;
+  margin-left: 0.25rem;
+}
+
+/* Empty State Actions */
+.empty-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.clear-filter-btn.secondary {
+  background: white;
+  color: #667eea;
+  border: 1px solid #667eea;
+}
+
+.clear-filter-btn.secondary:hover {
+  background: #f8f9fa;
+}
+
+/* Color utilities */
+.text-primary { color: #667eea !important; }
+.text-success { color: #4CAF50 !important; }
+.text-warning { color: #FF9800 !important; }
+.text-secondary { color: #9E9E9E !important; }
+
+/* Responsive for Filter Section */
+@media (max-width: 768px) {
+  .type-filter-buttons {
+    flex-direction: column;
+  }
+  
+  .type-filter-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .type-summary {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .empty-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .facility-list-single .medical-facility-card-single {
+    margin-bottom: 1rem !important;
+  }
+  
+  .clear-filter-btn,
+  .clear-filter-btn.secondary {
+    width: 200px;
+  }
+}
+
+@media (max-width: 576px) {
+  .filter-section {
+    padding: 1rem;
+  }
+  
+  .type-filter {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+}
+.facility-list-single {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  width: 100%;
+}
+
+.facility-card-wrapper {
+  width: 100%;
+  display: block;
+}
+/* Override grid layout cũ */
+.facility-grid {
+  display: none; /* Ẩn grid layout cũ */
+}
+
+/* Bỏ grid layout cũ */
+.facility-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5rem !important;
+}
+
+.badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  background: #667eea;
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+/* Loading State - Giống OutbreakPage */
+.medical-facility-page.loading {
   min-height: 60vh;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.pharmacy-page.loading .loading-state {
+.medical-facility-page.loading .loading-state {
   text-align: center;
   padding: 4rem 0;
 }
 
-.pharmacy-page.loading .spinner-border {
+.medical-facility-page.loading .spinner-border {
   width: 3rem;
   height: 3rem;
 }
 
-.pharmacy-page.loading p {
+.medical-facility-page.loading p {
   color: #495057;
   font-size: 1.1rem;
   margin-top: 1.5rem;
 }
 
-.pharmacy-page.error {
+/* Error State - Giống OutbreakPage */
+.medical-facility-page.error {
   min-height: 60vh;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.pharmacy-page.error .error-state {
+.medical-facility-page.error .error-state {
   text-align: center;
   padding: 4rem 0;
   color: #dc3545;
 }
 
-.pharmacy-page.error .error-state i {
+.medical-facility-page.error .error-state i {
   font-size: 4rem;
   margin-bottom: 1.5rem;
   color: #dc3545;
 }
 
-.pharmacy-page.error .error-state h5 {
+.medical-facility-page.error .error-state h5 {
   margin-bottom: 1rem;
   color: #495057;
 }
 
-.pharmacy-page.error .error-state p {
+.medical-facility-page.error .error-state p {
   color: #6c757d;
   margin-bottom: 1.5rem;
 }
 
-.pharmacy-page.error .btn-primary {
+.medical-facility-page.error .btn-primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   padding: 0.75rem 2rem;
@@ -632,11 +781,12 @@
   font-weight: 500;
 }
 
-.pharmacy-page.error .btn-primary:hover {
+.medical-facility-page.error .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
 }
 
+/* Empty State - Giống OutbreakPage */
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
@@ -687,18 +837,34 @@
   display: none !important;
 }
 
+/* Badge Count */
+.badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  background: #667eea;
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  padding: 0 0.5rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-  .pharmacy-page.loading .spinner-border {
+  .medical-facility-page.loading .spinner-border {
     width: 2.5rem;
     height: 2.5rem;
   }
   
-  .pharmacy-page.loading p {
+  .medical-facility-page.loading p {
     font-size: 1rem;
   }
   
-  .pharmacy-page.error .error-state i {
+  .medical-facility-page.error .error-state i {
     font-size: 3rem;
   }
   
