@@ -7,6 +7,8 @@ export default function MedicalFacilityPage() {
   const [facilities, setFacilities] = useState([]);
   const [filteredFacilities, setFilteredFacilities] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedService, setSelectedService] = useState("all");
+  const [availableServices, setAvailableServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -20,6 +22,11 @@ export default function MedicalFacilityPage() {
         console.log("Dữ liệu cơ sở y tế:", res.data);
         setFacilities(res.data);
         setFilteredFacilities(res.data);
+        
+        // Lấy danh sách dịch vụ duy nhất
+        const services = getAllUniqueServices(res.data);
+        setAvailableServices(services);
+        
         setLoading(false);
       })
       .catch(err => {
@@ -29,32 +36,97 @@ export default function MedicalFacilityPage() {
       });
   }, []);
 
+  // Hàm lấy tất cả dịch vụ duy nhất từ danh sách cơ sở
+  const getAllUniqueServices = (facilitiesList) => {
+    const serviceSet = new Set();
+    
+    facilitiesList.forEach(facility => {
+      const services = getServicesFromFacility(facility);
+      services.forEach(service => {
+        if (service && service.trim()) {
+          serviceSet.add(service.trim());
+        }
+      });
+    });
+    
+    // Sắp xếp theo thứ tự alphabet
+    return Array.from(serviceSet).sort();
+  };
+
+  // Hàm parse services từ facility
+  const getServicesFromFacility = (facility) => {
+    try {
+      if (Array.isArray(facility?.services)) {
+        return facility.services;
+      }
+      
+      if (typeof facility?.services === 'string') {
+        // Thử parse JSON
+        try {
+          const parsed = JSON.parse(facility.services);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          // Nếu không phải JSON, tách bằng dấu phẩy
+          return facility.services
+            .split(/[,;]/)
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+        }
+      }
+      
+      return [];
+    } catch (err) {
+      console.error("Error parsing services:", err);
+      return [];
+    }
+  };
+
+  // Xử lý lọc khi searchTerm hoặc selectedService thay đổi
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredFacilities(facilities);
-    } else {
-      const filtered = facilities.filter(facility =>
+    let filtered = [...facilities];
+    
+    // Lọc theo search term
+    if (searchTerm.trim() !== "") {
+      filtered = filtered.filter(facility =>
         facility.facility_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         facility.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        facility.services?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         facility.phone?.includes(searchTerm)
       );
-      setFilteredFacilities(filtered);
     }
+    
+    // Lọc theo dịch vụ
+    if (selectedService !== "all") {
+      filtered = filtered.filter(facility => {
+        const services = getServicesFromFacility(facility);
+        return services.some(service => 
+          service && service.toLowerCase().includes(selectedService.toLowerCase())
+        );
+      });
+    }
+    
+    setFilteredFacilities(filtered);
     setCurrentPage(1);
-  }, [searchTerm, facilities]);
+  }, [searchTerm, selectedService, facilities]);
 
- 
+  // Hàm xử lý thay đổi dịch vụ được chọn
+  const handleServiceChange = (service) => {
+    setSelectedService(service);
+  };
+
+  // Hàm xóa tất cả bộ lọc
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setSelectedService("all");
+  };
+
   const countActiveFacilities = () => {
     return facilities.filter(f => f.status === 'active').length;
   };
 
-  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredFacilities.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredFacilities.length / itemsPerPage);
-
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   
@@ -70,7 +142,6 @@ export default function MedicalFacilityPage() {
     }
   };
 
- 
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPagesToShow = 5;
@@ -100,7 +171,7 @@ export default function MedicalFacilityPage() {
     return pageNumbers;
   };
 
-    if (loading) {
+  if (loading) {
     return (
       <div className="medical-facility-page loading">
         <div className="container">
@@ -152,7 +223,7 @@ export default function MedicalFacilityPage() {
               <div className="stat-content">
                 <div className="stat-value">{facilities.length}</div>
                 <div className="stat-label">
-                  Tổng cơ sở y tế
+                  Cơ sở y tế
                 </div>
               </div>
             </div>
@@ -185,53 +256,120 @@ export default function MedicalFacilityPage() {
       </div>
 
       <div className="facility-container">
-        <div className="search-container">
-          <div className="search-box">
-            <i className="bi bi-search search-icon"></i>
-            <input
-              type="text"
-              placeholder="Tìm kiếm cơ sở y tế theo tên, địa chỉ, dịch vụ..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-            {searchTerm && (
-              <button 
-                className="clear-search"
-                onClick={() => setSearchTerm("")}
+        {/* Bộ lọc tìm kiếm và dịch vụ */}
+        <div className="filter-container">
+          <div className="search-filter-box">
+            <div className="search-box">
+              <i className="bi bi-search search-icon"></i>
+              <input
+                type="text"
+                placeholder="Tìm kiếm cơ sở y tế theo tên, địa chỉ..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button 
+                  className="clear-search"
+                  onClick={() => setSearchTerm("")}
+                >
+                  <i className="bi bi-x-lg"></i>
+                </button>
+              )}
+            </div>
+            
+            <div className="service-filter-box">
+              <div className="filter-label">
+                <i className="bi bi-funnel me-2"></i>
+                Lọc theo dịch vụ:
+              </div>
+              <select 
+                className="service-select"
+                value={selectedService}
+                onChange={(e) => handleServiceChange(e.target.value)}
               >
-                <i className="bi bi-x-lg"></i>
-              </button>
-            )}
+                <option value="all">Tất cả dịch vụ</option>
+                {availableServices.map((service, index) => (
+                  <option key={index} value={service}>
+                    {service}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
+          
+          {/* Hiển thị bộ lọc đang active */}
+          {(searchTerm || selectedService !== "all") && (
+            <div className="active-filters">
+              <div className="active-filters-header">
+                <span className="active-filters-label">
+                  <i className="bi bi-filter me-2"></i>
+                  Bộ lọc đang áp dụng:
+                </span>
+                <button 
+                  className="clear-all-filters"
+                  onClick={clearAllFilters}
+                >
+                  <i className="bi bi-x-lg me-1"></i>
+                  Xóa tất cả
+                </button>
+              </div>
+              
+              <div className="active-filter-tags">
+                {searchTerm && (
+                  <div className="filter-tag">
+                    <span>Tìm kiếm: "{searchTerm}"</span>
+                    <button 
+                      className="filter-tag-remove"
+                      onClick={() => setSearchTerm("")}
+                    >
+                      <i className="bi bi-x"></i>
+                    </button>
+                  </div>
+                )}
+                
+                {selectedService !== "all" && (
+                  <div className="filter-tag">
+                    <span>Dịch vụ: {selectedService}</span>
+                    <button 
+                      className="filter-tag-remove"
+                      onClick={() => setSelectedService("all")}
+                    >
+                      <i className="bi bi-x"></i>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
           <div className="search-info">
             <i className="bi bi-info-circle me-2"></i>
             Đang hiển thị {filteredFacilities.length} cơ sở y tế
             {searchTerm && ` cho "${searchTerm}"`}
+            {selectedService !== "all" && ` có dịch vụ "${selectedService}"`}
           </div>
         </div>
 
- 
         {!loading && !error && filteredFacilities.length === 0 && (
-           <div className="empty-state">
-              <i className="bi bi-hospital"></i>
+          <div className="empty-state">
+            <i className="bi bi-hospital"></i>
             <h5>Không tìm thấy cơ sở y tế</h5>
             <p>
-              {searchTerm
-                ? `Không có cơ sở y tế nào phù hợp với từ khóa "${searchTerm}"`
+              {searchTerm || selectedService !== "all"
+                ? "Không có cơ sở y tế nào phù hợp với bộ lọc đã chọn"
                 : "Không có cơ sở y tế nào trong hệ thống"}
             </p>
-            {searchTerm && (
+            {(searchTerm || selectedService !== "all") && (
               <button 
                 className="clear-filter-btn"
-                onClick={() => setSearchTerm("")}
+                onClick={clearAllFilters}
               >
-                <i className="bi bi-funnel me-2"></i>Xóa tìm kiếm
+                <i className="bi bi-funnel me-2"></i>Xóa bộ lọc
               </button>
             )}
           </div>
         )}
-
 
         {!loading && !error && filteredFacilities.length > 0 && (
           <>
@@ -239,22 +377,22 @@ export default function MedicalFacilityPage() {
               <div className="title-content">
                 <i className="bi bi-list-check me-2"></i>
                 Danh sách cơ sở y tế
+     
               </div>
             </h2>
             
- 
             <div className="pagination-info">
-              Hiển thị {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredFacilities.length)} trên tổng số {filteredFacilities.length} cơ sở y tế
+              Hiển thị {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredFacilities.length)} 
+              &nbsp;trên tổng số {filteredFacilities.length} cơ sở y tế
             </div>
             
             <div className="facility-list-single">
               {currentItems.map(facility => (
-                  <div key={facility.facility_id} className="facility-card-wrapper">
+                <div key={facility.facility_id} className="facility-card-wrapper">
                   <MedicalFacilityCard facility={facility} />
                 </div>
               ))}
             </div>
-
 
             {totalPages > 1 && (
               <div className="pagination-container">
@@ -292,7 +430,6 @@ export default function MedicalFacilityPage() {
                   </button>
                 </nav>
                 
-  
                 <div className="items-per-page">
                   <span className="items-per-page-label">Hiển thị:</span>
                   <select 
@@ -314,7 +451,6 @@ export default function MedicalFacilityPage() {
           </>
         )}
 
-   
         <div className="facility-footer-note">
           <p>
             <i className="bi bi-info-circle me-2"></i>

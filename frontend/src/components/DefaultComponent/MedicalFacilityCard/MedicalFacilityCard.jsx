@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import "./MedicalFacilityCard.css";
 
 export default function MedicalFacilityCard({ facility }) {
+  const [showDetail, setShowDetail] = useState(false);
+
   const getFacilityType = () => {
     const typeMap = {
       'hospital': 'Bệnh viện',
@@ -54,19 +56,18 @@ export default function MedicalFacilityCard({ facility }) {
   const status = getStatusBadge();
   const services = getServices();
 
- 
   const getServiceIcon = (service) => {
     const iconMap = {
       'khám tổng quát': 'bi-heart-pulse',
       'khám nội tổng quát': 'bi-heart-pulse',
       'cấp cứu 24/7': 'bi-alarm',
-      'xét nghiệm': 'bi-vial',
+      'xét nghiệm': 'bi-chat-dots',
       'chẩn đoán hình ảnh': 'bi-camera',
       'phẫu thuật': 'bi-scissors',
       'vật lý trị liệu': 'bi-person-walking',
       'tư vấn sức khỏe': 'bi-chat-dots',
       'tư vấn': 'bi-chat-dots',
-      'tiêm chủng': 'bi-syringe',
+      'tiêm chủng': 'bi bi-virus',
       'sản phụ khoa': 'bi-baby',
       'nhi khoa': 'bi-emoji-smile'
     };
@@ -97,104 +98,139 @@ export default function MedicalFacilityCard({ facility }) {
     return colors[index % colors.length];
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "Không có";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
-    <div className="medical-facility-card-single full-width-card">
-      <div className="facility-header">
-        <div className="facility-icon">
-          <i className="bi bi-hospital"></i>
+    <>
+      {/* Card chỉ hiển thị tên */}
+      <div className="medical-facility-card-single full-width-card">
+        <div className="facility-header">
+          <div className="facility-icon">
+            <i className="bi bi-hospital"></i>
+          </div>
+          <div className="facility-name-only">
+            <h3 className="facility-name">{facility.facility_name}</h3>
+          </div>
         </div>
-        <div>
-          <h3 className="facility-name">{facility.facility_name}</h3>
-          <span className={`facility-type ${facility.type_id}`}>
-            {facilityType}
+
+        <div className="facility-footer">
+          <span className={`status-badge ${status.class}`}>
+            <i className="bi bi-circle-fill me-1"></i>
+            {status.text}
           </span>
+          
+          <div className="facility-actions">
+            <button 
+              className="facility-btn facility-btn-primary"
+              onClick={() => setShowDetail(true)}
+            >
+              <i className="bi bi-eye me-2"></i>
+              Xem chi tiết
+            </button>
+          </div>
         </div>
       </div>
 
-
-      <div className="facility-info">
-        <div className="info-item">
-          <div className="info-icon">
-            <i className="bi bi-geo-alt"></i>
-          </div>
-          <div className="info-content">
-            <span className="info-label">Địa chỉ</span>
-            <p className="info-text">{facility.address}</p>
-          </div>
-        </div>
-
-        {facility.phone && (
-          <div className="info-item">
-            <div className="info-icon">
-              <i className="bi bi-telephone"></i>
+      {/* Modal chi tiết */}
+      {showDetail && (
+        <div className="modal-overlay" onClick={() => setShowDetail(false)}>
+          <div className="facility-detail-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">
+                <i className="bi bi-hospital me-2"></i>
+                Chi tiết cơ sở y tế
+              </h3>
+              <button 
+                className="modal-close-btn"
+                onClick={() => setShowDetail(false)}
+              >
+                <i className="bi bi-x-lg"></i>
+              </button>
             </div>
-            <div className="info-content">
-              <span className="info-label">Điện thoại</span>
-              <a href={`tel:${facility.phone}`} className="facility-phone">
-                {facility.phone}
-              </a>
-            </div>
-          </div>
-        )}
 
-        {services.length > 0 && (
-          <div className="info-item services-item">
-            <div className="info-icon">
-              <i className="bi bi-list-check"></i>
-            </div>
-            <div className="info-content">
-              <span className="info-label">Dịch vụ ({services.length})</span>
-              <div className="services-container">
-                <div className="services-grid">
-                  {services.slice(0, 4).map((service, index) => (
-                    <div 
-                      key={index} 
-                      className="service-badge"
-                      style={{ borderLeftColor: getServiceColor(index) }}
-                    >
-                      <i className={`bi ${getServiceIcon(service)} me-1`}></i>
-                      <span className="service-text">{service}</span>
-                    </div>
-                  ))}
-                </div>
-                
-
-                {services.length > 4 && (
-                  <div className="more-services">
-                    <div className="more-services-badge">
-                      <i className="bi bi-plus-circle me-1"></i>
-                      +{services.length - 4} dịch vụ khác
-                    </div>
-
-                    <div className="services-tooltip">
-                      {services.map((service, index) => (
-                        <div key={index} className="tooltip-service">
-                          <i className={`bi ${getServiceIcon(service)} me-2`}></i>
-                          {service}
-                        </div>
-                      ))}
-                    </div>
+            <div className="modal-body">
+              <div className="detail-section">
+                <h4 className="detail-section-title">Thông tin cơ bản</h4>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Tên cơ sở:</span>
+                    <span className="detail-value">{facility.facility_name}</span>
                   </div>
-                )}
+                  <div className="detail-item">
+                    <span className="detail-label">Loại cơ sở:</span>
+                    <span className="facility-type">{facilityType}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Trạng thái:</span>
+                    <span className={`status-badge ${status.class}`}>
+                      <i className="bi bi-circle-fill me-1"></i>
+                      {status.text}
+                    </span>
+                  </div>
+                </div>
               </div>
+
+              <div className="detail-section">
+                <h4 className="detail-section-title">Thông tin liên hệ</h4>
+                <div className="detail-grid">
+                  <div className="detail-item full-width">
+                    <span className="detail-label">Địa chỉ:</span>
+                    <span className="detail-value">{facility.address || "Không có"}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Điện thoại:</span>
+                    {facility.phone ? (
+                      <a href={`tel:${facility.phone}`} className="facility-phone">
+                        <i className="bi bi-telephone me-1"></i>
+                        {facility.phone}
+                      </a>
+                    ) : (
+                      <span className="detail-value">Không có</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {services.length > 0 && (
+                <div className="detail-section">
+                  <h4 className="detail-section-title">Dịch vụ ({services.length})</h4>
+                  <div className="services-detail-grid">
+                    {services.map((service, index) => (
+                      <div 
+                        key={index} 
+                        className="service-badge"
+                        style={{ borderLeftColor: getServiceColor(index) }}
+                      >
+                        <i className={`bi ${getServiceIcon(service)} me-1`}></i>
+                        <span className="service-text">{service}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="facility-btn facility-btn-secondary"
+                onClick={() => setShowDetail(false)}
+              >
+                Đóng
+              </button>
             </div>
           </div>
-        )}
-      </div>
-
-      <div className="facility-footer">
-        <span className={`status-badge ${status.class}`}>
-          <i className="bi bi-circle-fill me-1"></i>
-          {status.text}
-        </span>
-        
-        <div className="facility-actions">
-          <button className="facility-btn facility-btn-primary">
-            <i className="bi bi-eye me-2"></i>
-            Xem chi tiết
-          </button>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

@@ -139,7 +139,7 @@ export default function PharmacyPage() {
           <div className="pharmacy-stats">
             <div className="stat-card">
               <div className="stat-icon">
-                <i className="bi bi-hospital"></i>
+                <i className="bi bi-capsule"></i>
               </div>
               <div className="stat-content">
                 <div className="stat-value">{filteredPharmacies.length}</div>

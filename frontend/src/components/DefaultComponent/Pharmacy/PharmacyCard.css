@@ -85,18 +85,7 @@
   margin: 0;
 }
 
-.pharmacy-status {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-  margin-top: 0.75rem;
-  display: flex;
-  align-items: center;
-}
+/* ĐÃ XÓA .pharmacy-status VÌ MODEL KHÔNG CÓ */
 
 .pharmacy-actions {
   display: flex;
@@ -128,19 +117,310 @@
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.pharmacy-btn-secondary {
+/* ======================= */
+/* MODAL STYLES - THÊM VÀO */
+/* ======================= */
+
+/* Modal Overlay */
+.pharmacy-detail-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Container */
+.pharmacy-detail-modal {
   background: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Modal Header */
+.pharmacy-detail-modal .modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.pharmacy-detail-modal .modal-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.pharmacy-detail-modal .modal-title {
+  flex: 1;
+}
+
+.pharmacy-detail-modal .modal-pharmacy-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.pharmacy-detail-modal .modal-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.pharmacy-detail-modal .modal-id {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.pharmacy-detail-modal .modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pharmacy-detail-modal .modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Modal Body */
+.pharmacy-detail-modal .modal-body {
+  padding: 2rem;
+}
+
+.pharmacy-detail-modal .info-section {
+  margin-bottom: 2rem;
+}
+
+.pharmacy-detail-modal .section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+}
+
+.pharmacy-detail-modal .section-title i {
   color: #667eea;
-  border: 1px solid rgba(102, 126, 234, 0.3);
 }
 
-.pharmacy-btn-secondary:hover {
-  background: rgba(102, 126, 234, 0.05);
-  border-color: rgba(102, 126, 234, 0.5);
+/* Info Grid */
+.pharmacy-detail-modal .info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
 }
 
-/* Responsive */
+.pharmacy-detail-modal .info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.pharmacy-detail-modal .info-item:hover {
+  background: #eef2ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.pharmacy-detail-modal .info-icon {
+  color: #667eea;
+  font-size: 1.2rem;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+.pharmacy-detail-modal .info-content {
+  flex: 1;
+}
+
+.pharmacy-detail-modal .info-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #718096;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pharmacy-detail-modal .info-text {
+  color: #333;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0;
+  word-break: break-word;
+}
+
+/* Province Info */
+.pharmacy-detail-modal .province-info {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.pharmacy-detail-modal .province-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.pharmacy-detail-modal .province-item:last-child {
+  border-bottom: none;
+}
+
+.pharmacy-detail-modal .province-label {
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.pharmacy-detail-modal .province-value {
+  font-weight: 600;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+/* Notes */
+.pharmacy-detail-modal .notes {
+  background: #f8f9fa;
+  border-left: 4px solid #4CAF50;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.pharmacy-detail-modal .notes p {
+  color: #4a5568;
+  margin: 0;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+}
+
+.pharmacy-detail-modal .notes i {
+  color: #4CAF50;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+/* Modal Footer */
+.pharmacy-detail-modal .modal-footer {
+  padding: 1.5rem 2rem;
+  background: #f8f9fa;
+  border-radius: 0 0 20px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.pharmacy-detail-modal .modal-btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pharmacy-detail-modal .modal-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.pharmacy-detail-modal .modal-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.pharmacy-detail-modal .modal-btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.pharmacy-detail-modal .modal-btn-secondary:hover {
+  background: #5a6268;
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+/* ======================= */
+/* RESPONSIVE */
+/* ======================= */
+
 @media (max-width: 768px) {
+  /* Card Responsive */
   .pharmacy-card {
     padding: 1.25rem;
   }
@@ -162,9 +442,53 @@
   .pharmacy-btn {
     width: 100%;
   }
+  
+  /* Modal Responsive */
+  .pharmacy-detail-modal {
+    width: 95%;
+    max-height: 85vh;
+  }
+  
+  .pharmacy-detail-modal .modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+  
+  .pharmacy-detail-modal .modal-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.5rem;
+  }
+  
+  .pharmacy-detail-modal .modal-pharmacy-name {
+    font-size: 1.3rem;
+  }
+  
+  .pharmacy-detail-modal .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .pharmacy-detail-modal .info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .pharmacy-detail-modal .info-item {
+    padding: 0.875rem;
+  }
+  
+  .pharmacy-detail-modal .modal-footer {
+    padding: 1.25rem 1.5rem;
+    flex-direction: column;
+  }
+  
+  .pharmacy-detail-modal .modal-btn {
+    width: 100%;
+    padding: 0.875rem;
+  }
 }
 
 @media (max-width: 480px) {
+  /* Card Responsive */
   .pharmacy-header {
     flex-direction: column;
     align-items: flex-start;
@@ -182,5 +506,30 @@
   .address-text {
     font-size: 0.9rem;
     line-height: 1.5;
+  }
+  
+  /* Modal Responsive */
+  .pharmacy-detail-modal-overlay {
+    padding: 10px;
+  }
+  
+  .pharmacy-detail-modal .modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .pharmacy-detail-modal .modal-title {
+    width: 100%;
+  }
+  
+  .pharmacy-detail-modal .modal-subtitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .pharmacy-detail-modal .info-grid {
+    gap: 0.75rem;
   }
 }
