@@ -386,7 +386,7 @@ const OutbreakManagement = ({ onAddOutbreak, onEditOutbreak, refreshTrigger }) =
             <div>
               <strong>Cảnh báo:</strong> Hiện có <strong>{stats.filteredHighSeverity} vùng dịch</strong> ở mức độ cao 
               {stats.filteredHighSeverity !== stats.highSeverity && ` (${stats.highSeverity} tổng cộng)`}
-              cần theo dõi chặt chẽ và xử lý kịp thời.
+               cần theo dõi chặt chẽ và xử lý kịp thời.
             </div>
           </div>
         </div>

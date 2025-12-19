@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import './Pharmacies.css';
 import pharmacyService from '../../../services/pharmacyService';
 import PharmacyForm from '../FormComponents/PharmacyForm/PharmacyForm';
+import PharmacyMap from '../MapComponents/PharmacyMap/PharmacyMap';
 
 const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
     const [activeTab, setActiveTab] = useState('all');
@@ -9,6 +10,7 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
     const [pharmacies, setPharmacies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState(null);
+    const [selectedPharmacy, setSelectedPharmacy] = useState(null);   
 
     // State phân trang
     const [currentPage, setCurrentPage] = useState(1);
@@ -41,6 +43,20 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
         };
         fetchPharmacies();
     }, []);
+
+    const [provinces, setProvinces] = useState([]);
+    useEffect(() => {
+        fetch("http://localhost:3001/api/provinces")
+        .then(res => res.json())
+        .then(data => setProvinces(data));
+    }, []);
+    const provinceMap = useMemo(() => {
+    const map = {};
+    provinces.forEach(p => {
+        map[String(p.province_id)] = p.province_name;
+    });
+    return map;
+    }, [provinces]);
 
     // THÊM (update state trực tiếp)
     const handleAddPharmacyResult = (created) => {
@@ -83,11 +99,28 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
             if (res?.success === false) {
                 alert(res.message || 'Xóa thất bại');
                 return;
-            }
+            } else alert(`Đã xóa nhà thuốc "${pharmacyName}" thành công!`);
 
             // Cập nhật state local
             setPharmacies(prev => prev.filter(p => p.pharmacy_id !== pharmacyId));
         }
+    };
+
+    // Sửa hàm xử lý click trên bản đồ
+    const handleMapPharmacyClick = (pharmacy) => {
+        const pharmacyId = pharmacy.pharmacy_id;
+        
+        // Toggle selection - nếu đang chọn thì bỏ chọn, nếu không thì chọn
+        if (selectedPharmacy === pharmacyId) {
+        setSelectedPharmacy(null);
+        } else {
+        setSelectedPharmacy(pharmacyId);
+        }
+    };
+
+    // Thêm hàm reset map view
+    const handleResetMapView = () => {
+        setSelectedPharmacy(null);
     };
 
     // filter: tìm theo pharmacy_name hoặc address (an toàn khi p undefined)
@@ -207,6 +240,46 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                 </div>
             </div>
 
+        {/* Pharmacy Map Preview */}
+        <div className="pharmacy-map-preview">
+            <div className="map-header">
+            <h5>Bản Đồ Nhà Thuốc</h5>
+            <div className="map-header-badge">
+                <span className="badge bg-primary">
+                {filteredPharmacies.length} nhà thuốc đang hiển thị
+                </span>
+                {selectedPharmacy && (
+                <button 
+                    className="btn btn-sm btn-outline-secondary ms-2"
+                    onClick={handleResetMapView}
+                    title="Xóa chọn và xem tất cả"
+                >
+                    <i className="bi bi-x-lg me-1"></i>
+                    Xóa chọn
+                </button>
+                )}
+            </div>
+            </div>
+            
+            <div className="pharmacy-map-wrapper">
+            {pharmacies.length === 0 ? (
+                <div className="map-empty-state">
+                <i className="bi bi-map"></i>
+                <h6>Chưa có dữ liệu nhà thuốc</h6>
+                <p>Bản đồ sẽ hiển thị khi có nhà thuốc được thêm vào</p>
+                </div>
+            ) : (
+                <PharmacyMap 
+                outbreaks={filteredPharmacies}
+                onOutbreakClick={handleMapPharmacyClick}
+                selectedOutbreakId={selectedPharmacy}
+                showLoading={loading}
+                enableReset={true}
+                />
+            )}
+            </div>
+        </div>
+
             {/* Filters and Search*/}
             <div className="pharmacies-filters">
                 <div className="row g-3">
@@ -281,6 +354,7 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                                         <th>STT</th>
                                         <th>Tên nhà thuốc</th>
                                         <th>Địa chỉ</th>
+                                        <th>Tỉnh/Thành phố</th>
                                         <th>Thao tác</th>
                                     </tr>
                                 </thead>
@@ -296,6 +370,9 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                                                 <small>{pharmacy.address}</small>
                                             </td>
                                             <td>
+                                                {provinceMap[pharmacy.province_id]}
+                                            </td>
+                                            <td>
                                                 <div className="action-buttons">
                                                     <button
                                                         className="btn btn-sm btn-outline-primary me-1"
@@ -305,7 +382,7 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                                                         <i className="bi bi-pencil"></i>
                                                     </button>
 
-                                                    <button
+                                                    {/* <button
                                                         className="btn btn-sm btn-outline-info me-1"
                                                         title="Xem chi tiết"
                                                         onClick={() => {
@@ -313,7 +390,7 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                                                         }}
                                                     >
                                                         <i className="bi bi-eye"></i>
-                                                    </button>
+                                                    </button> */}
 
                                                     <button
                                                         className="btn btn-sm btn-outline-danger"

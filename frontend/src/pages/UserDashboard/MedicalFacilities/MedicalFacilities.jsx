@@ -1,8 +1,8 @@
 // src/pages/UserDashboard/MedicalFacilities/MedicalFacilities.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import './MedicalFacilities.css';
-import facilityService from '../../../services/facilityService';
 import FacilityForm from '../FormComponents/FacilityForm/FacilityForm';
+import FacilityMap from '../MapComponents/FacilityMap/FacilityMap';
 
 const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) => {
   const [activeTab, setActiveTab] = useState('all'); // Lọc theo trạng thái hoạt động
@@ -10,6 +10,7 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
   const [facilities, setFacilities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [selectedFacility, setSelectedFacility] = useState(null);
 
   // State phân trang
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,7 +61,7 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
             services: servicesArr,
             lastUpdated: item.updatedAt ? item.updatedAt.slice(0, 10) : '',
             // Thêm thông tin mặc định cho các trường không có trong API
-            province: getProvinceFromGeometry(item.area_geom),
+            province: item.province_id //getProvinceFromGeometry(item.area_geom),
           };
         });
 
@@ -95,15 +96,35 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
       phone: item.phone || '—',
       status: item.status || 'unknown',
       services: servicesArr,
-      province: item.province || '',
+      province: item.province_id || '',
       lastUpdated: item.updatedAt?.slice(0, 10) || ''
     };
+  };
+
+  const [expandedFacilityId, setExpandedFacilityId] = useState(null);
+
+  const toggleExpand = (id) => {
+    setExpandedFacilityId(prev => (prev === id ? null : id));
   };
 
   const getProvinceFromGeometry = (geometry) => {
     // Đây là hàm mẫu, cần tích hợp với GIS service thực tế
     return 'Hồ Chí Minh';
   };
+
+  const [provinces, setProvinces] = useState([]);
+  useEffect(() => {
+    fetch("http://localhost:3001/api/provinces")
+      .then(res => res.json())
+      .then(data => setProvinces(data));
+  }, []);
+  const provinceMap = useMemo(() => {
+  const map = {};
+  provinces.forEach(p => {
+    map[String(p.province_id)] = p.province_name;
+  });
+  return map;
+}, [provinces]);
 
   // THÊM: hàm xử lý khi thêm thành công (giống Pharmacies.jsx)
   const handleAddFacilityResult = async (created) => {
@@ -164,6 +185,23 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
       console.error("Error deleting facility:", err);
       alert(`Xóa thất bại: ${err.message}`);
     }
+  };
+
+  // Sửa hàm xử lý click trên bản đồ
+  const handleMapFacilityClick = (facility) => {
+    const facilityId = facility.facility_id;
+    
+    // Toggle selection - nếu đang chọn thì bỏ chọn, nếu không thì chọn
+    if (selectedFacility === facilityId) {
+      setSelectedFacility(null);
+    } else {
+      setSelectedFacility(facilityId);
+    }
+  };
+
+  // Thêm hàm reset map view
+  const handleResetMapView = () => {
+    setSelectedFacility(null);
   };
 
   // Hàm lọc Facilities
@@ -332,6 +370,46 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
         </div>
       </div>
 
+      {/* Facility Map Preview */}
+      <div className="facility-map-preview">
+        <div className="map-header">
+          <h5>Bản Đồ Cơ Sở Y Tế</h5>
+          <div className="map-header-badge">
+            <span className="badge bg-primary">
+              {filteredFacilities.length} cơ sở y tế đang hiển thị
+            </span>
+            {selectedFacility && (
+              <button 
+                className="btn btn-sm btn-outline-secondary ms-2"
+                onClick={handleResetMapView}
+                title="Xóa chọn và xem tất cả"
+              >
+                <i className="bi bi-x-lg me-1"></i>
+                Xóa chọn
+              </button>
+            )}
+          </div>
+        </div>
+        
+        <div className="facility-map-wrapper">
+          {facilities.length === 0 ? (
+            <div className="map-empty-state">
+              <i className="bi bi-map"></i>
+              <h6>Chưa có dữ liệu cơ sở y tế</h6>
+              <p>Bản đồ sẽ hiển thị khi có cơ sở y tế được thêm vào</p>
+            </div>
+          ) : (
+            <FacilityMap 
+              facilities={filteredFacilities}
+              onFacilityClick={handleMapFacilityClick}
+              selectedFacilityId={selectedFacility}
+              showLoading={isLoading}
+              enableReset={true}
+            />
+          )}
+        </div>
+      </div>
+
       {/* Filters and Search */}
       <div className="facilities-filters">
         <div className="row g-3">
@@ -460,73 +538,89 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
                     <th>Tên cơ sở</th>
                     <th>Loại hình</th>
                     <th>Địa chỉ</th>
-                    <th>Liên hệ</th>
+                    <th>Tỉnh/Thành phố</th>
                     <th>Trạng thái</th>
                     <th>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentFacilities.map((f, index) => (
-                    <tr key={f.id || f.name}>
-                      <td>{startIndex + index + 1}</td>
-                      <td><strong>{f.name}</strong></td>
-                      <td>{f.type}</td>
-                      <td><small>{f.address}</small></td>
-                      <td>{f.phone}</td>
-                      <td>{getStatusBadge(f.status)}</td>
-                      <td>
-                        <div className="action-buttons">
-                          <button
-                            className="btn btn-sm btn-outline-primary"
-                            onClick={() => {
-                              console.log("Editing facility - Full object:", f);
-                              console.log("Facility name:", f.name);
-                              console.log("Facility ID:", f.id);
-                              console.log("Raw data:", f.raw);
+                    <React.Fragment key={f.id}>
+                      <tr key={f.id || f.name}>
+                        <td>{startIndex + index + 1}</td>
+                        <td><strong>{f.name}</strong></td>
+                        <td>{f.type}</td>
+                        <td><small>{f.address}</small></td>
+                        <td>{provinceMap[f.province]}</td>
+                        <td>{getStatusBadge(f.status)}</td>
+                        <td>
+                          <div className="action-buttons">
+                            <button     // sửa
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => {
+                                console.log("Editing facility - Full object:", f);
+                                console.log("Facility name:", f.name);
+                                console.log("Facility ID:", f.id);
+                                console.log("Raw data:", f.raw);
 
-                              // Tạo object đầy đủ với tất cả field cần thiết
-                              const facilityData = {
-                                facility_id: f.id,
-                                id: f.id,
-                                facility_name: f.name,
-                                name: f.name,
-                                type_id: f.type,
-                                type: f.type,
-                                address: f.address,
-                                phone: f.phone,
-                                province_id: f.raw?.province_id || '',
-                                province: f.raw?.province || '',
-                                services: f.services,
-                                status: f.status,
-                                // SỬA: Xử lý location an toàn
-                                location: f.raw?.facility_point_id || null,
-                                facility_point_id: f.raw?.facility_point_id || null
-                              };
+                                // Tạo object đầy đủ với tất cả field cần thiết
+                                const facilityData = {
+                                  facility_id: f.id,
+                                  id: f.id,
+                                  facility_name: f.name,
+                                  name: f.name,
+                                  type_id: f.type,
+                                  type: f.type,
+                                  address: f.address,
+                                  phone: f.phone,
+                                  province_id: f.raw?.province_id || '',
+                                  province: f.raw?.province || '',
+                                  services: f.services,
+                                  status: f.status,
+                                  // SỬA: Xử lý location an toàn
+                                  location: f.raw?.facility_point_id || null,
+                                  facility_point_id: f.raw?.facility_point_id || null
+                                };
 
-                              console.log("Data to pass to form:", facilityData);
-                              setEditingFacility(facilityData);
-                              setShowForm(true);
-                            }}
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </button>
+                                console.log("Data to pass to form:", facilityData);
+                                setEditingFacility(facilityData);
+                                setShowForm(true);
+                              }}
+                            >
+                              <i className="bi bi-pencil"></i>
+                            </button>
 
-                          <button
-                            className="btn btn-sm btn-outline-info"
-                            onClick={() => alert(`Chi tiết: ${f.name}\nĐịa chỉ: ${f.address}\nLoại: ${f.type}\nTrạng thái: ${f.status}`)}
-                          >
-                            <i className="bi bi-eye"></i>
-                          </button>
+                            <button     // xóa
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleDeleteClick(f.id, f.name)}
+                            >
+                              <i className="bi bi-trash"></i>
+                            </button>
 
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => handleDeleteClick(f.id, f.name)}
-                          >
-                            <i className="bi bi-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                            <button     // xem
+                              className="btn btn-sm btn-outline-info"
+                              onClick={() => toggleExpand(f.id)}
+                            >
+                              <i className={`bi ${expandedFacilityId === f.id ? 'bi-chevron-up' : 'bi-eye'}`}></i>
+                            </button>                            
+                          </div>
+                        </td>
+                      </tr>
+                      {expandedFacilityId === f.id && (
+                        <tr className="facility-expanded-row">
+                          <td colSpan={7}>
+                            <div className="expanded-content">
+                              <div><strong>Số điện thoại:</strong> {f.phone || '(Chưa cập nhật)'}</div>
+                
+                              <div style={{ marginTop: 6 }}>
+                                <strong>Dịch vụ: </strong>
+                                {Array.isArray(f.services) ? f.services.join(', ') : (<span> (Chưa cập nhật)</span>)}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>   
                   ))}
                 </tbody>
               </table>
