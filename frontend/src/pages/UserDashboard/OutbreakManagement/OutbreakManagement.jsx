@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import './OutbreakManagement.css';
 import outbreakServices from '../../../services/outbreakServices';
 import OutbreakMap from '../MapComponents/OutbreakMap/OutbreakMap';
+import provinceService from '../../../services/provinceService';
+
 
 const OutbreakManagement = ({ onAddOutbreak, onEditOutbreak, refreshTrigger }) => {
   const [outbreaks, setOutbreaks] = useState([]);
@@ -35,46 +37,66 @@ const OutbreakManagement = ({ onAddOutbreak, onEditOutbreak, refreshTrigger }) =
   }, [refreshTrigger]);
 
   const fetchOutbreaks = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const response = await outbreakServices.getAllOutbreaks();
-      
-      if (response && response.data) {
-        const formattedOutbreaks = response.data.map(outbreak => ({
-          outbreak_id: outbreak.outbreak_id,
-          outbreak_name: outbreak.outbreak_name,
-          disease_id: outbreak.disease_id,
-          disease_name: diseaseTypes.find(d => d.id === outbreak.disease_id)?.name || 'Khác',
-          disease_cases: outbreak.disease_cases,
-          severity_level: outbreak.severity_level,
-          start_date: outbreak.start_date,
-          end_date: outbreak.end_date,
-          area_geom: outbreak.area_geom,
-          creator_id: outbreak.creator_id,
-          createdAt: outbreak.createdAt,
-          updatedAt: outbreak.updatedAt,
+  try {
+    setIsLoading(true);
+    setError(null);
+    
+    const response = await outbreakServices.getAllOutbreaks();
+    if (response && response.data) {
+      // Tạo mảng promises
+      const outbreaksWithProvinces = await Promise.all(
+        response.data.map(async (outbreak) => {
+          const provinceName = await getProvinceName(outbreak.province_id);
           
-          status: getOutbreakStatus(outbreak.start_date, outbreak.end_date),
-          formatted_start_date: formatDate(outbreak.start_date),
-          formatted_end_date: outbreak.end_date ? formatDate(outbreak.end_date) : null,
-          last_updated: getTimeAgo(outbreak.updatedAt),
-          
-          province: 'Hồ Chí Minh',
-          district: getDistrictFromGeometry(outbreak.area_geom),
-        }));
-        
-        setOutbreaks(formattedOutbreaks);
-      }
-    } catch (error) {
-      console.error('Error fetching outbreaks:', error);
-      setError('Không thể tải danh sách vùng dịch. Vui lòng thử lại sau.');
-    } finally {
-      setIsLoading(false);
+          return {
+            outbreak_id: outbreak.outbreak_id,
+            outbreak_name: outbreak.outbreak_name,
+            disease_id: outbreak.disease_id,
+            disease_name: diseaseTypes.find(d => d.id === outbreak.disease_id)?.name || 'Khác',
+            disease_cases: outbreak.disease_cases,
+            severity_level: outbreak.severity_level,
+            start_date: outbreak.start_date,
+            end_date: outbreak.end_date,
+            area_geom: outbreak.area_geom,
+            creator_id: outbreak.creator_id,
+            createdAt: outbreak.createdAt,
+            updatedAt: outbreak.updatedAt,
+            
+            status: getOutbreakStatus(outbreak.start_date, outbreak.end_date),
+            formatted_start_date: formatDate(outbreak.start_date),
+            formatted_end_date: outbreak.end_date ? formatDate(outbreak.end_date) : null,
+            last_updated: getTimeAgo(outbreak.updatedAt),
+            province_id: outbreak.province_id,
+            province_name: provinceName 
+          };
+        })
+      );
+      
+      console.log('Formatted outbreaks:', outbreaksWithProvinces);
+      setOutbreaks(outbreaksWithProvinces);
     }
-  };
+  } catch (error) {
+    console.error('Error fetching outbreaks:', error);
+    setError('Không thể tải danh sách vùng dịch. Vui lòng thử lại sau.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
+  // Lấy tên tỉnh từ outbreak_id
+    const getProvinceName = async (id) => {
+    try {
+      const res = await provinceService.searchProvinces(id);
+      if (Array.isArray(res) && res.length > 0) {
+        const province = res[0]; // Lấy phần tử đầu tiên
+        return province.province_name || 'N/A';
+      }
+      return null;
+    } catch (error) {
+      console.error('Error in getProvinceName:', error);
+      return null;
+    }
+  }
   // Helper functions
   const getOutbreakStatus = (startDate, endDate) => {
     if (endDate) return 'resolved';
@@ -115,24 +137,6 @@ const OutbreakManagement = ({ onAddOutbreak, onEditOutbreak, refreshTrigger }) =
     }
   };
 
-  const getProvinceFromGeometry = (geometry) => {
-    return 'Hồ Chí Minh';
-  };
-
-  const getDistrictFromGeometry = (geometry) => {
-    const coordinates = geometry?.coordinates?.[0];
-    if (coordinates && coordinates.length > 0) {
-      const [lng, lat] = coordinates[0];
-      if (lng > 106.65 && lng < 106.67 && lat > 10.75 && lat < 10.76) {
-        return 'Quận 5';
-      }
-      if (lng > 106.63 && lng < 106.65 && lat > 10.76 && lat < 10.78) {
-        return 'Quận 3';
-      }
-    }
-    return 'Không xác định';
-  };
-
   // Hàm lọc outbreaks
   const filteredOutbreaks = outbreaks.filter(outbreak => {
     if (severityFilter !== 'all' && outbreak.severity_level !== severityFilter) {
@@ -152,8 +156,7 @@ const OutbreakManagement = ({ onAddOutbreak, onEditOutbreak, refreshTrigger }) =
       return (
         outbreak.outbreak_name.toLowerCase().includes(searchLower) ||
         outbreak.disease_name.toLowerCase().includes(searchLower) ||
-        outbreak.district.toLowerCase().includes(searchLower) ||
-        outbreak.province.toLowerCase().includes(searchLower)
+        outbreak.province_name.toLowerCase().includes(searchLower)
       );
     }
     
@@ -223,6 +226,8 @@ const OutbreakManagement = ({ onAddOutbreak, onEditOutbreak, refreshTrigger }) =
         area_geom: outbreak.area_geom,
         creator_id: outbreak.creator_id,
         id: outbreak.outbreak_id,
+        province_id: outbreak.province_id,
+        province_name: outbreak.province_name
       });
     }
   };
@@ -578,10 +583,7 @@ const OutbreakManagement = ({ onAddOutbreak, onEditOutbreak, refreshTrigger }) =
                 : 'Chưa có vùng dịch nào được thêm vào hệ thống'
               }
             </p>
-            <button className="btn btn-outline-primary mt-2" onClick={resetFilters}>
-              <i className="bi bi-arrow-clockwise me-1"></i>
-              Xóa bộ lọc
-            </button>
+          
           </div>
         ) : (
           <div className="outbreaks-grid">
@@ -613,7 +615,7 @@ const OutbreakManagement = ({ onAddOutbreak, onEditOutbreak, refreshTrigger }) =
                     </div>
                     <div className="info-item">
                       <i className="bi bi-geo-alt"></i>
-                      <span>{outbreak.district}, {outbreak.province}</span>
+                      <span> {outbreak.province_name}</span>
                     </div>
                     <div className="info-item">
                       <i className="bi bi-people"></i>

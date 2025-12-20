@@ -290,10 +290,6 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
     return <span className={`badge bg-${config.class}`}>{config.label}</span>;
   };
 
-  const handleExportReport = () => {
-    console.log('Exporting outbreak report');
-    alert('Đã xuất báo cáo thành công!');
-  };
 
   // Thống kê nhanh
   const stats = {
@@ -501,13 +497,7 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
             <button className="btn btn-primary" onClick={() => { setEditingFacility(null); setShowForm(true); }}>
               <i className="bi bi-plus-circle me-2"></i> Thêm Cơ Sở Mới
             </button>
-            <button
-              className="btn btn-outline-primary"
-              onClick={handleExportReport}
-            >
-              <i className="bi bi-download me-2"></i>
-              Xuất Báo Cáo
-            </button>
+            
           </div>
         </div>
 

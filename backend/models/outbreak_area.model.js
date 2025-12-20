@@ -50,6 +50,10 @@ OutbreakArea.init({
     type: DataTypes.DATEONLY,
     allowNull: true,
   },
+  province_id: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   area_geom: {
     type: DataTypes.GEOMETRY("POLYGON", 4326),
     allowNull: false,

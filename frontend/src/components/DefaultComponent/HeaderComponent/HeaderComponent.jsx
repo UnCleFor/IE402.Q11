@@ -35,7 +35,7 @@ const HeaderComponent = () => {
       </nav>
 
       {/* Banner thông báo khẩn cấp */}
-      <EmergencyBanner />
+      {/* <EmergencyBanner /> */}
     </header>
   );
 };

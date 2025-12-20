@@ -241,34 +241,7 @@ const PharmacyMap = ({
           })}
         </MapContainer>
         
-        {/* Custom zoom controls */}
-        <div className="custom-map-controls">
-          <button 
-            className="map-control-btn"
-            onClick={() => mapRef.current?.zoomIn()}
-            title="Zoom in"
-          >
-            <i className="bi bi-plus"></i>
-          </button>
-          <button 
-            className="map-control-btn"
-            onClick={() => mapRef.current?.zoomOut()}
-            title="Zoom out"
-          >
-            <i className="bi bi-dash"></i>
-          </button>
-          <button 
-            className="map-control-btn"
-            onClick={() => {
-              if (mapRef.current) {
-                mapRef.current.setView(mapCenter, mapZoom);
-              }
-            }}
-            title="Reset view"
-          >
-            <i className="bi bi-geo-alt"></i>
-          </button>
-        </div>
+        
       </div>
     </div>
   );

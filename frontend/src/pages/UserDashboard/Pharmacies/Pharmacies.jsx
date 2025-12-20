@@ -187,10 +187,7 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
         return pageNumbers;
     };
 
-    const handleExportReport = () => {
-        console.log('Exporting outbreak report');
-        alert('Đã xuất báo cáo thành công!');
-    };
+
 
     // Thống kê theo bộ lọc hiện tại
     const filteredStats = {
@@ -335,13 +332,7 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                         <button className="btn btn-primary" onClick={() => { setEditingPharmacy(null); setShowForm(true); }}>
                             <i className="bi bi-plus-circle me-2"></i> Thêm Nhà Thuốc Mới
                         </button>
-                        <button
-                            className="btn btn-outline-primary"
-                            onClick={handleExportReport}
-                        >
-                            <i className="bi bi-download me-2"></i>
-                            Xuất Báo Cáo
-                        </button>
+                        
                     </div>
                 </div>
 
