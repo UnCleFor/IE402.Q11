@@ -53,6 +53,31 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
+  const refreshToken = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) return null;
+
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('authToken', data.token);
+        return data.token;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      return null;
+    }
+  };
+
   const hasRole = (requiredRoles) => {
     if (!user || !user.role) return false;
     
@@ -68,6 +93,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateUser,
+    refreshToken,
     hasRole,
     isAuthenticated: !!user,
     loading
