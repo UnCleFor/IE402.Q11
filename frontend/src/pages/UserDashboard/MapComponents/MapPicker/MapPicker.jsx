@@ -36,7 +36,7 @@ const PointPicker = ({ onPointSelect, selectedPoint, isSelecting }) => {
         permanent: true,
         direction: 'top'
       });
-      
+
       // Xóa marker cũ nếu có
       map.eachLayer((layer) => {
         if (layer instanceof L.Marker && layer !== marker) {
@@ -51,7 +51,7 @@ const PointPicker = ({ onPointSelect, selectedPoint, isSelecting }) => {
 
   // Hiển thị marker nếu có selectedPoint
   useEffect(() => {
-    if (selectedPoint) {
+    if (!selectedPoint || isSelecting) return;
       const { lat, lng } = selectedPoint;
       
       // Xóa tất cả markers cũ
@@ -76,8 +76,8 @@ const PointPicker = ({ onPointSelect, selectedPoint, isSelecting }) => {
       
       // Zoom vào điểm
       map.setView([lat, lng], 16);
-    }
-  }, [selectedPoint, map]);
+
+  }, [selectedPoint, map, isSelecting]);
 
   return null;
 };
@@ -85,7 +85,7 @@ const PointPicker = ({ onPointSelect, selectedPoint, isSelecting }) => {
 // Component chính
 const MapPicker = ({ 
   onLocationSelect, 
-  initialPoint = null, 
+  initialPoint, 
   height = "400px",
   showClearButton = true 
 }) => {
@@ -94,17 +94,20 @@ const MapPicker = ({
   const mapRef = useRef();
 
   // Khởi tạo điểm nếu có initialPoint
+  const isInitializedRef = useRef(false);
+
   useEffect(() => {
-    if (initialPoint) {
-      setSelectedPoint(initialPoint);
-    }
+    if (!initialPoint) return;
+    if (isInitializedRef.current) return;
+
+    console.log("Init point:", initialPoint);
+    setSelectedPoint(initialPoint);
+    isInitializedRef.current = true;
   }, [initialPoint]);
 
-  const handlePointSelect = useCallback((point) => {
-    console.log('Point selected:', point);
-    
+  const handlePointSelect = useCallback((point) => {    
     setSelectedPoint(point);
-    
+
     // Gọi callback với dữ liệu điểm
     if (onLocationSelect) {
       onLocationSelect(point);
@@ -117,6 +120,11 @@ const MapPicker = ({
   const handleStartSelecting = () => {
     setIsSelecting(true);
   };
+
+  const handleEditSelecting = () => {
+    setSelectedPoint(null); 
+    setIsSelecting(true);
+};
 
   const handleCancelSelecting = () => {
     setIsSelecting(false);
@@ -166,13 +174,23 @@ const MapPicker = ({
                 Chọn điểm
               </button>
             ) : (
-              <button 
-                className="btn btn-sm btn-success"
-                disabled
-              >
-                <i className="bi bi-check-circle me-1"></i>
-                Đã chọn
-              </button>
+              <>
+                <button 
+                  className="btn btn-sm btn-warning"
+                  onClick={handleEditSelecting}
+                >
+                  <i className="bi bi-check-circle me-1"></i>
+                  Chỉnh sửa
+                </button>
+              
+                <button 
+                  className="btn btn-sm btn-success"
+                  disabled
+                >
+                  <i className="bi bi-check-circle me-1"></i>
+                  Đã chọn
+                </button>
+              </>
             )
           ) : (
             <>

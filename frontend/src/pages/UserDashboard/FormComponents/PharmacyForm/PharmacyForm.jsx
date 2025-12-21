@@ -23,7 +23,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
   useEffect(() => {
     console.log("PharmacyForm received initialData:", initialData);
     
-    if (initialData && Object.keys(initialData).length > 0) {
+    if (initialData && mode === 'edit') {
       // Map dữ liệu từ API (có pharmacy_name) sang form (dùng name)
       setFormData({
         name: initialData.pharmacy_name || initialData.name || '',
@@ -35,7 +35,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
     } else {
       setFormData(defaultFormData);
     }
-  }, [initialData]);
+  }, [initialData, mode]);
 
   const [currentStep, setCurrentStep] = useState(1);
   const nextStep = () => setCurrentStep(prev => prev + 1);
@@ -64,18 +64,43 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
+  const [hasLocationChanged, setHasLocationChanged] = useState(false);
   const handleLocationSelect = (point) => {
     setFormData(prev => ({
       ...prev,
       location: point
     }));
+    setHasLocationChanged(true);
+  };
+
+  const [locationDetail, setLocationDetail] = useState(null);
+
+  useEffect(() => {
+    if (!formData.location) return;
+
+    fetch(`http://localhost:3001/api/locations/${formData.location}`)
+      .then(res => res.json())
+      .then(data => setLocationDetail(data))
+      .catch(err => console.error("Load location failed", err));
+  }, [formData.location]);
+
+  const getCurrentPoint = () => {
+    if (
+      locationDetail &&
+      locationDetail.coordinates &&
+      Array.isArray(locationDetail.coordinates.coordinates)
+    ) {
+      const [lng, lat] = locationDetail.coordinates.coordinates;
+      return {lat, lng}
+    }
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // tạo location
-    let locationId = null;
+    let locationId = initialData?.pharmacy_point_id || null;
 
     if (formData.location) {
       const locationPayload = {
@@ -89,24 +114,31 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
         }
       };
 
-      console.log("Creating location:", locationPayload);
+      if (mode === 'edit' && locationId) {
+        if (hasLocationChanged) {
+        // UPDATE location cũ
+        await fetch(`http://localhost:3001/api/locations/${locationId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(locationPayload)
+        });
+      }} else {
+        // CREATE location mới
+        const locRes = await fetch("http://localhost:3001/api/locations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(locationPayload)
+        });
 
-      const locRes = await fetch("http://localhost:3001/api/locations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(locationPayload)
-      });
-
-      if (!locRes.ok) {
-        const err = await locRes.json();
-        throw new Error(err.message || "Tạo location thất bại");
+        const locResult = await locRes.json();
+        locationId = locResult.location_id;
       }
-
-      const locResult = await locRes.json();
-      locationId = locResult.location_id;
     }
 
     // Tạo payload phù hợp cho cả create và update
@@ -165,8 +197,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
       <div className="form-header">
         <h4>
           {mode === 'create' ? 'Thêm Nhà Thuốc Mới' : 'Chỉnh Sửa Nhà Thuốc'}
-          {mode === 'edit' && initialData && initialData.pharmacy_name && 
-            `: ${initialData.pharmacy_name}`}
+          {mode === 'edit' && initialData && `: ${initialData.pharmacy_name}`}
         </h4>
 
         <div className="step-indicator">
@@ -197,7 +228,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
                 required
               />
               {/* DEBUG: Hiển thị giá trị ban đầu */}
-              {initialData && initialData.pharmacy_name && (
+              {mode === 'edit' && initialData?.pharmacy_name && (
                 <small className="text-muted">
                   Tên hiện tại: {initialData.pharmacy_name}
                 </small>
@@ -247,7 +278,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
               <div className='map-container'>
                 <MapPicker
                 onLocationSelect={handleLocationSelect}
-                initialLocation={formData.location}
+                initialPoint={getCurrentPoint()}
                 height="300px"
               />
               </div>
@@ -290,12 +321,12 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
                     <label>Địa chỉ:</label>
                     <span>{formData.address || '(Chưa nhập địa chỉ)'}</span>
                   </div>
-                  {mode === 'edit' && initialData && (
+                  {/* {mode === 'edit' && initialData && (
                     <div className="summary-item">
                       <label>ID nhà thuốc:</label>
                       <span className="text-muted">{initialData.pharmacy_id}</span>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>

@@ -10,7 +10,7 @@ module.exports = {
       address: body.address,
       phone: body.phone,
       province_id: body.province_id,
-      services: (body.services || []).join(', '),
+      services: body.services,
       facility_point_id: body.facility_point_id,
       creator_id: req.user.user_id         // từ decoded token
     };
