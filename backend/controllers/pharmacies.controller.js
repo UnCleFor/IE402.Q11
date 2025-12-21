@@ -69,4 +69,103 @@ module.exports = {
       res.status(500).json({ error: err.message });
     }
   },
+
+  //Tìm kiếm pharmacies
+  async search(req, res) {
+    try {      
+      const results = await pharmacyService.search(req.query);
+      
+      res.json({
+        success: true,
+        count: results.length,
+        data: results,
+        query: req.query
+      });
+    } catch (err) {
+      console.error('❌ Pharmacies search error:', err);
+      res.status(500).json({ 
+        success: false,
+        error: err.message 
+      });
+    }
+  },
+
+  //Tìm pharmacies gần nhất
+  async findNearby(req, res) {
+    try {      
+      const { lat, lng } = req.query;
+      
+      if (!lat || !lng) {
+        return res.status(400).json({
+          success: false,
+          error: 'Thiếu tham số bắt buộc: lat và lng'
+        });
+      }
+      
+      const results = await pharmacyService.findNearby(req.query);
+      
+      res.json({
+        success: true,
+        count: results.length,
+        current_location: { 
+          lat: parseFloat(lat), 
+          lng: parseFloat(lng) 
+        },
+        search_radius: req.query.radius || 5000,
+        data: results
+      });
+    } catch (err) {
+      console.error('❌ Pharmacies nearby error:', err);
+      res.status(500).json({ 
+        success: false,
+        error: err.message 
+      });
+    }
+  },
+
+  //Tìm kiếm nâng cao (POST)
+  async advancedSearch(req, res) {
+    try {      
+      const results = await pharmacyService.advancedSearch(req.body);
+      
+      res.json({
+        success: true,
+        count: results.length,
+        filters: req.body,
+        data: results
+      });
+    } catch (err) {
+      console.error('❌ Pharmacies advanced search error:', err);
+      res.status(500).json({ 
+        success: false,
+        error: err.message 
+      });
+    }
+  },
+
+  //Lấy chi tiết pharmacy với location
+  async getWithLocation(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await pharmacyService.getByIdWithLocation(id);
+      
+      if (!result) {
+        return res.status(404).json({
+          success: false,
+          error: 'Pharmacy not found'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      console.error('❌ Get pharmacy with location error:', err);
+      res.status(500).json({ 
+        success: false,
+        error: err.message 
+      });
+    }
+  }
 };

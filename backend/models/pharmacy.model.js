@@ -1,7 +1,8 @@
 "use strict";
 const {
   Model,
-  DataTypes
+  DataTypes,
+  Sequelize
 } = require("sequelize");
 const sequelize = require("../config/db");
 const {
@@ -38,6 +39,11 @@ Pharmacy.init({
   },
   address: DataTypes.STRING,
   province_id: DataTypes.STRING,
+  status: {
+    type: Sequelize.ENUM("active", "inactive"),
+    defaultValue: "active",
+    allowNull: false
+  }
 }, {
   sequelize,
   modelName: "Pharmacy",
