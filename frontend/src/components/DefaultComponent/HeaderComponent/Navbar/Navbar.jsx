@@ -35,12 +35,6 @@ const Navbar= () => {
       icon: 'fas fa-virus',
       label: 'Vùng dịch',
       active: currentPath === '/outbreak-areas'
-    },
-    {
-      path: '/about',
-      icon: 'fas fa-info-circle',
-      label: 'Giới thiệu',
-      active: currentPath === '/about'
     }
   ];
 

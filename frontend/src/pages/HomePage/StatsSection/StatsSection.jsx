@@ -109,7 +109,7 @@ const StatsSection = () => {
                 ))}
               </div>
               <div className="text-center mt-3">
-                <a href="/outbreak-areas" className="btn btn-outline-primary">
+                <a href="/outbreaks" className="btn btn-outline-primary">
                   Xem chi tiết vùng dịch
                 </a>
               </div>
