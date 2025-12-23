@@ -25,8 +25,6 @@ const SearchSection = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log('Search:', { searchTerm, selectedType, selectedProvince });
-    // Xử lý tìm kiếm thực tế ở đây
   };
 
   return (

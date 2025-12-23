@@ -19,7 +19,6 @@ export default function MedicalFacilityPage() {
     setLoading(true);
     axios.get("http://localhost:3001/api/medical-facilities")
       .then(res => {
-        console.log("Dữ liệu cơ sở y tế:", res.data);
         setFacilities(res.data);
         setFilteredFacilities(res.data);
         
@@ -30,7 +29,7 @@ export default function MedicalFacilityPage() {
         setLoading(false);
       })
       .catch(err => {
-        console.log("Lỗi khi tải cơ sở y tế:", err);
+        console.error("Lỗi khi tải cơ sở y tế:", err);
         setError("Không thể tải danh sách cơ sở y tế. Vui lòng thử lại sau.");
         setLoading(false);
       });
@@ -128,6 +127,7 @@ export default function MedicalFacilityPage() {
   const currentItems = filteredFacilities.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredFacilities.length / itemsPerPage);
 
+  // Các hàm chuyển trang
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   
   const goToNextPage = () => {
@@ -142,6 +142,7 @@ export default function MedicalFacilityPage() {
     }
   };
 
+  // Hàm lấy danh sách số trang để hiển thị
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPagesToShow = 5;
@@ -371,6 +372,7 @@ export default function MedicalFacilityPage() {
           </div>
         )}
 
+        {/* Hiển thị danh sách cơ sở y tế với phân trang */}
         {!loading && !error && filteredFacilities.length > 0 && (
           <>
             <h2 className="facility-section-title">

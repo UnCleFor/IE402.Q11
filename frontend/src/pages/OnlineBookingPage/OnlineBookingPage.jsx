@@ -94,12 +94,6 @@ const OnlineBookingPage = () => {
     const newBookingCode = 'BK-' + Date.now().toString().slice(-8);
     setBookingCode(newBookingCode);
     setShowBookingModal(true);
-    
-    console.log('Đặt lịch thành công:', {
-      bookingCode: newBookingCode,
-      ...bookingData,
-      facilityName: facilities.find(f => f.id === parseInt(bookingData.facility))?.name
-    });
   };
 
   // Lọc bác sĩ theo cơ sở đã chọn

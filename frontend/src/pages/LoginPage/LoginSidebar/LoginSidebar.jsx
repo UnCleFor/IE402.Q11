@@ -33,7 +33,8 @@ const LoginSidebar = () => {
           Truy cập vào bảng điều khiển quản trị để quản lý toàn bộ hệ thống 
           Bản đồ Y tế Quốc gia một cách hiệu quả.
         </p>
-        
+
+        {/* Features List */}
         <div className="features-list">
           {features.map((feature, index) => (
             <div key={index} className="feature-item">

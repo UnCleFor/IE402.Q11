@@ -6,7 +6,6 @@ const LoginHeader = () => {
   return (
     <header className="login-header">
       <nav className="navbar navbar-expand-lg navbar-dark">
-        {/* Đã bỏ container, sử dụng container-fluid và padding */}
         <div className="container-fluid px-4">
           {/* Logo */}
           <a className="navbar-brand d-flex align-items-center" href="/">

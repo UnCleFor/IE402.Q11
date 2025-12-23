@@ -1,7 +1,4 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit'
-// import productReducer from './slices/productSlide'
-// import userReducer from './slices/userSlide'
-// import orderReducer from './slices/orderSlide'
 
 import {
   persistStore,
@@ -18,8 +15,8 @@ import storage from 'redux-persist/lib/storage' // Sử dụng localStorage làm
 // Cấu hình redux-persist
 const persistConfig = {
   key: 'root', // Key gốc cho dữ liệu lưu trữ
-  version: 1, // Phiên bản persist (dùng khi muốn migrate state sau này)
-  storage, // Dùng localStorage
+  version: 1,  // Phiên bản persist (dùng khi muốn migrate state sau này)
+  storage,     // Dùng localStorage
   blacklist: ['product', 'user'] // Không persist các slice này (user đã dùng localStorage riêng, product không cần lưu)
 }
 

@@ -688,12 +688,11 @@
   width: 100%;
   display: block;
 }
-/* Override grid layout cũ */
+
 .facility-grid {
-  display: none; /* Ẩn grid layout cũ */
+  display: none;
 }
 
-/* Bỏ grid layout cũ */
 .facility-grid {
   display: flex !important;
   flex-direction: column !important;
@@ -827,7 +826,6 @@
   transform: translateY(-2px);
 }
 
-/* Ẩn các container loading/error cũ */
 .loading-container,
 .error-container {
   display: none !important;

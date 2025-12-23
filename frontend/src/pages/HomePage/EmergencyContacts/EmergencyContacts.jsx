@@ -43,6 +43,7 @@ const EmergencyContacts = () => {
           </div>
         </div>
 
+        {/* Hiển thị các thẻ số điện thoại khẩn cấp */}
         <div className="row justify-content-center">
           {emergencyNumbers.map((contact, index) => (
             <div key={index} className="col-lg-3 col-md-6 mb-4">

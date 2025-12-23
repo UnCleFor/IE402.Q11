@@ -608,24 +608,8 @@ const SymptomResults = () => {
 
   // Hàm xác nhận đặt lịch
   const handleConfirmBooking = () => {
-    // Generate booking code
-    const bookingCode = 'BK-' + Date.now().toString().slice(-8);
-
-    // In thông tin ra console (trong thực tế sẽ gọi API)
-    console.log('Booking confirmed:', {
-      bookingCode,
-      facility: selectedFacility,
-      bookingForm,
-      doctor: availableDoctors.find(d => d.id === parseInt(selectedDoctor))
-    });
-
     setBookingConfirmed(true);
     setBookingStep(4);
-  };
-
-  // Hàm in vé
-  const handlePrintTicket = () => {
-    window.print();
   };
 
   // Hàm gửi email xác nhận
@@ -706,6 +690,7 @@ const SymptomResults = () => {
                 </div>
               </div>
             ) : (
+              // Results List
               <div className="results-list">
                 {filteredFacilities.map((facility, index) => {
                   const reviews = getReviewsForFacility(facility.id);

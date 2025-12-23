@@ -1,11 +1,11 @@
-/* SymptomResultsPage.css - Updated */
+/* SymptomResultsPage.css */
 
 .symptom-results-page {
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
   min-height: 100vh;
 }
 
-/* Header mới */
+/* Header */
 .results-header {
   background: linear-gradient(135deg, #1a237e, #3949ab);
   color: white;
@@ -143,12 +143,12 @@
   color: #ffc107;
 }
 
-/* Main Content - Bỏ sidebar */
+/* Main Content */
 .results-content {
   margin-bottom: 3rem;
 }
 
-/* Stats Section mới */
+/* Stats Section */
 .results-stats {
   display: flex;
   gap: 1.5rem;
@@ -239,7 +239,6 @@
   align-items: center;
   gap: 0.5rem;
   white-space: nowrap;
-  /* Ngăn text xuống dòng */
 }
 
 
@@ -323,7 +322,7 @@
   min-width: 180px;
 }
 
-/* Results List - Cập nhật layout */
+/* Results List */
 .result-card {
   background: white;
   border-radius: 20px;
@@ -719,9 +718,8 @@
   box-shadow: none !important;
 }
 
-/* Reviews Section - Giữ nguyên */
+/* Reviews Section */
 .facility-reviews {
-  /* ... CSS của reviews section giữ nguyên ... */
   margin-top: 1rem;
 }
 

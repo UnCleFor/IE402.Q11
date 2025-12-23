@@ -98,7 +98,7 @@ const LoginForm = () => {
       }
     } catch (error) {
       // Xử lý lỗi không mong muốn
-      console.log('Unexpected error in handleSubmit:', error);
+      console.error('Unexpected error in handleSubmit:', error);
     } finally {
       setIsLoading(false);
     }

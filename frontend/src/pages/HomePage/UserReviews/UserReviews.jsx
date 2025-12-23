@@ -157,7 +157,7 @@ const UserReviews = ({ facilityId, reviews = [] }) => {
   
   // Lấy đánh giá theo facilityId, nếu không có thì lấy mặc định
   const facilityReviews = reviews.length > 0 ? reviews : 
-                         (allReviews[facilityId] || allReviews[1] || []);
+      (allReviews[facilityId] || allReviews[1] || []);
   
   // Tính rating trung bình
   const averageRating = facilityReviews.length > 0 

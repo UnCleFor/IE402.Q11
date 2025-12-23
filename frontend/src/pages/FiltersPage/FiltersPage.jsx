@@ -16,10 +16,12 @@ const FilterPage = () => {
     facilityType: ''
   });
 
+  // Xử lý thay đổi bộ lọc
   const handleFilterChange = (filterName, value) => {
     setFilters(prev => ({ ...prev, [filterName]: value }));
   };
 
+  // Xử lý xóa bộ lọc
   const handleClearFilters = () => {
     setFilters({
       province: '',
@@ -31,7 +33,8 @@ const FilterPage = () => {
       facilityType: ''
     });
   };
-
+  
+  // Xử lý tìm kiếm với bộ lọc
   const handleSearchWithFilters = () => {
     navigate('/filtered-results', {
       state: {
@@ -40,10 +43,6 @@ const FilterPage = () => {
         timestamp: new Date().toISOString()
       }
     });
-  };
-
-  const handleBackToHome = () => {
-    navigate('/');
   };
 
   return (

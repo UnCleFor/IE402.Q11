@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './RegisterForm.css'; // Tạo file CSS mới cho đăng ký
+import './RegisterForm.css';
 import authService from '../../../services/authService';
 
 const RegisterForm = () => {
@@ -147,7 +147,7 @@ const handleSubmit = async (e) => {
 
   } catch (error) {
     // Xử lý lỗi không mong muốn
-    console.log('Unexpected error in handleSubmit:', {
+    console.error('Unexpected error in handleSubmit:', {
       name: error.name,
       message: error.message,
       stack: error.stack

@@ -19,7 +19,6 @@ const MapSection = () => {
         <div className="row">
           <div className="col-12">
             <div className="map-container">
-              {/* Placeholder cho bản đồ thực tế - sẽ tích hợp Leaflet/Google Maps sau */}
               <div className="map-placeholder">
                 <div className="placeholder-content">
                   <i className="bi bi-map placeholder-icon"></i>

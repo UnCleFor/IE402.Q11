@@ -68,6 +68,7 @@ const SymptomSearchPage = () => {
     'Ù tai': 'low'
   };
 
+  // Xử lý tìm kiếm triệu chứng
   const handleSymptomSearch = (e) => {
     const value = e.target.value;
     setSymptoms(value);
@@ -82,6 +83,7 @@ const SymptomSearchPage = () => {
     }
   };
 
+  // Xử lý chọn triệu chứng từ gợi ý
   const handleSymptomSelection = (symptom) => {
     setSymptoms(symptom);
     setSymptomSuggestions([]);

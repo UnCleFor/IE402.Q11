@@ -143,8 +143,6 @@
   }
 }
 
-/* Thêm vào LoginForm.css */
-
 /* Password visibility toggle */
 .input-group .btn-outline-secondary {
   border-color: #dee2e6;
@@ -212,7 +210,7 @@
   }
 }
 
-/* Thêm style cho demo buttons và success message */
+/* demo buttons & success message */
 .demo-section {
   padding: 1rem;
   background: linear-gradient(to right, #f8f9fa, #e9ecef);

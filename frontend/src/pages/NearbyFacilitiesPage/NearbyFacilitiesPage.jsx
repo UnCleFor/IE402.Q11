@@ -504,6 +504,7 @@ const NearbyFacilitiesPage = () => {
     }));
   };
 
+  // Các hàm chuyển bước đặt lịch
   const handleNextStep = () => {
     if (bookingStep === 1) {
       if (!bookingForm.name || !bookingForm.phone || !bookingForm.date) {
@@ -519,15 +520,6 @@ const NearbyFacilitiesPage = () => {
   };
 
   const handleConfirmBooking = () => {
-    const bookingCode = 'BK-' + Date.now().toString().slice(-8);
-
-    console.log('Booking confirmed:', {
-      bookingCode,
-      facility: selectedFacility,
-      bookingForm,
-      doctor: availableDoctors.find(d => d.id === parseInt(selectedDoctor))
-    });
-
     setBookingConfirmed(true);
     setBookingStep(4);
   };
@@ -699,16 +691,6 @@ const NearbyFacilitiesPage = () => {
                     const reviewStats = getReviewStats(facility.id);
                     const isExpanded = expandedFacilityId === facility.id;
                     
-                    // Xác định icon cho loại cơ sở
-                    const getFacilityTypeIcon = (type) => {
-                      switch(type) {
-                        case 'hospital': return 'bi-hospital';
-                        case 'clinic': return 'bi-clipboard2-pulse';
-                        case 'medical-center': return 'bi-building';
-                        default: return 'bi-building';
-                      }
-                    };
-
                     return (
                       <div key={facility.id} className="facility-item">
                         <div className="facility-content-wrapper">

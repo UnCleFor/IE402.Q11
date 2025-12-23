@@ -1,4 +1,3 @@
-// src/pages/MyAppointments/MyAppointments.jsx
 import React, { useState } from 'react';
 import './MyAppointmentsPage.css';
 
@@ -116,8 +115,6 @@ const MyAppointments = () => {
   // Xử lý hủy lịch hẹn
   const handleCancelAppointment = (appointmentId) => {
     if (window.confirm('Bạn có chắc chắn muốn hủy lịch hẹn này?')) {
-      // Logic hủy lịch hẹn
-      console.log('Cancelling appointment:', appointmentId);
       alert('Đã gửi yêu cầu hủy lịch hẹn. Nhân viên sẽ liên hệ xác nhận.');
     }
   };
