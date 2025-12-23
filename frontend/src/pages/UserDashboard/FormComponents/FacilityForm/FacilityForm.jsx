@@ -4,10 +4,9 @@ import './FacilityForm.css';
 import { jwtDecode } from "jwt-decode";
 
 const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
-  // Đảm bảo workingHours luôn có giá trị mặc định
   const defaultFormData = {
     name: '',
-    type: 'hospital',
+    type: '',
     address: '',
     phone: '',
     province: '',
@@ -32,31 +31,46 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     console.log("Mode:", mode);
     console.log("InitialData received:", initialData);
     console.log("Has facility_id?", initialData?.facility_id);
-    console.log("Has id?", initialData?.id);
-    console.log("Has facility_name?", initialData?.facility_name);
+    console.log("Has location?", initialData?.location);
+    console.log("Has facility_type?", initialData?.type_id);
     console.log("Has name?", initialData?.name);
     console.log("Has services?", initialData?.services);
     
     if (mode === 'edit' && initialData) {
       // Map dữ liệu từ API vào form
-      const servicesArray = Array.isArray(initialData.services) 
-        ? initialData.services 
-        : (typeof initialData.services === 'string' 
-            ? JSON.parse(initialData.services || '[]') 
-            : []);
+      const servicesArray = (() => {
+        const s = initialData?.services;
+
+        if (Array.isArray(s)) return s;
+
+        if (typeof s === 'string') {
+          // Thử parse JSON trước
+          try {
+            const parsed = JSON.parse(s);
+            if (Array.isArray(parsed)) return parsed;
+          } catch (e) {
+            // Không phải JSON → tách bằng dấu phẩy
+            return s
+              .split(',')
+              .map(item => item.trim())
+              .filter(Boolean);
+          }
+        }
+
+        return [];
+      })();
       
       setSelectedServices(servicesArray);
       
       // Trong useEffect, sửa phần map location:
       setFormData({
-        name: initialData.facility_name || initialData.name || '',
-        type: initialData.type_id || initialData.type || 'hospital',
+        name: initialData.facility_name || '',
+        type: initialData.type_id || '',
         address: initialData.address || '',
         phone: initialData.phone || '',
-        province: initialData.province_id || initialData.province || '',
+        province: initialData.province_id || '',
         // SỬA: Xử lý location an toàn
         location: initialData.facility_point_id || initialData.location || null,
-        workingHours: initialData.workingHours || defaultFormData.workingHours
       });
       
       console.log("Form data after mapping:", {
@@ -119,11 +133,13 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
+  const [hasLocationChanged, setHasLocationChanged] = useState(false);
   const handleLocationSelect = (point) => {
     setFormData(prev => ({
       ...prev,
       location: point
     }));
+    setHasLocationChanged(true);  // tọa độ được chọn
   };
 
   const toggleService = (service) => {
@@ -134,24 +150,34 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     );
   };
 
-  const handleWorkingHoursChange = (period, timeType, value) => {
-    setFormData(prev => ({
-      ...prev,
-      workingHours: {
-        ...prev.workingHours,
-        [period]: {
-          ...(prev.workingHours?.[period] || {}),
-          [timeType]: value
-        }
-      }
-    }));
+  const [locationDetail, setLocationDetail] = useState(null);
+
+  useEffect(() => {
+    if (!formData.location) return;
+
+    fetch(`http://localhost:3001/api/locations/${formData.location}`)
+      .then(res => res.json())
+      .then(data => setLocationDetail(data))
+      .catch(err => console.error("Load location failed", err));
+  }, [formData.location]);
+
+  const getCurrentPoint = () => {
+    if (
+      locationDetail &&
+      locationDetail.coordinates &&
+      Array.isArray(locationDetail.coordinates.coordinates)
+    ) {
+      const [lng, lat] = locationDetail.coordinates.coordinates;
+      return {lat, lng}
+    }
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     // tạo location
-    let locationId = null;
+    let locationId = initialData?.facility_point_id || null;
 
     if (formData.location) {
       const locationPayload = {
@@ -160,29 +186,36 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
           type: "Point",
           coordinates: [
             formData.location.lng,
-            formData.location.lat 
+            formData.location.lat
           ]
         }
       };
 
-      console.log("Creating location:", locationPayload);
+      if (mode === 'edit' && locationId) {
+        if (hasLocationChanged) {
+        // UPDATE location cũ
+        await fetch(`http://localhost:3001/api/locations/${locationId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(locationPayload)
+        });
+      }} else {
+        // CREATE location mới
+        const locRes = await fetch("http://localhost:3001/api/locations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(locationPayload)
+        });
 
-      const locRes = await fetch("http://localhost:3001/api/locations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(locationPayload)
-      });
-
-      if (!locRes.ok) {
-        const err = await locRes.json();
-        throw new Error(err.message || "Tạo location thất bại");
+        const locResult = await locRes.json();
+        locationId = locResult.location_id;
       }
-
-      const locResult = await locRes.json();
-      locationId = locResult.location_id;
     }
 
     // Lấy ID cho edit mode
@@ -192,7 +225,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     console.log("Mode:", mode);
     console.log("Facility ID:", facilityId);
     console.log("InitialData:", initialData);
-    console.log("Form data name:", formData.name);
+    console.log("Form data type:", facilityTypes);
     console.log("Selected services:", selectedServices);
 
     const payload = {
@@ -200,8 +233,9 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
       type_id: formData.type,
       address: formData.address,
       phone: formData.phone,
+      status: formData.status,
       province_id: formData.province,
-      services: selectedServices,
+      services: JSON.stringify(selectedServices),
       facility_point_id: locationId,
       creator_id: userId
     };
@@ -267,7 +301,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
 
     try {
       const res = await fetch(url, {
-        method: method,  // SỬA: Dùng biến method, không cứng POST
+        method: method,  // SỬA: Dùng biến method, không cứng POST 
         headers: { 
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -302,24 +336,8 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
       <div className="form-header">
         <h4>
           {mode === 'create' ? 'Thêm Cơ Sở Y Tế Mới' : 'Chỉnh Sửa Cơ Sở Y Tế'}
-          {mode === 'edit' && initialData && (
-            <span className="text-muted ms-2">
-              (ID: {initialData.facility_id || initialData.id})
-            </span>
-          )}
+          {mode === 'edit' && initialData && `: ${initialData.facility_name}`}
         </h4>
-        
-        {/* THÊM: Debug info */}
-        {mode === 'edit' && (
-          <div className="alert alert-info mt-2 mb-0 p-2">
-            <small>
-              <i className="bi bi-info-circle me-1"></i>
-              Chế độ chỉnh sửa | ID: {initialData?.facility_id || initialData?.id} | 
-              API sẽ dùng: PUT {formData.type === "pharmacy" ? "/pharmacies/" : "/medical-facilities/"}
-              {initialData?.facility_id || initialData?.id}
-            </small>
-          </div>
-        )}
         
         <div className="step-indicator">
           <div className={`step ${currentStep >= 1 ? 'active' : ''}`}>
@@ -410,17 +428,38 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
             </div>
 
             <div className="row">
-              <div className="form-group">
-                <label>Số điện thoại *</label>
-                <input
-                  type="tel"
-                  className="form-control"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="VD: 024 3869 3731"
-                  required={formData.type !== 'pharmacy'}
-                />
+              <div className="col-md-6">
+                <div className="form-group">
+                  <label>Số điện thoại *</label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="VD: 024 3869 3731"
+                    required={formData.type !== 'pharmacy'}
+                  />
+                </div>
               </div>
+              <div className="col-md-6">
+                <div className="form-group">
+                  <label>Trạng thái hoạt động</label>
+                  <select
+                    className="form-control mt-3"
+                    value={formData.status}
+                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    required
+                  >
+                    <option value="">-- Chọn trạng thái --</option>
+                    <option value="active">Hoạt động</option>
+                    <option value="pending">Đang chờ duyệt</option>
+                    <option value="inactive">Ngưng hoạt động</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="row">
               <div className="form-group">
                 <label>Dịch vụ cung cấp</label>
                 <div className="services-selector">
@@ -458,7 +497,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
               <div className='map-container'>
                 <MapPicker
                 onLocationSelect={handleLocationSelect}
-                initialLocation={formData.location}
+                initialPoint={getCurrentPoint()}
                 height="300px"
               />
               </div>
@@ -504,6 +543,12 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                     <label>Tỉnh/Thành:</label>
                     <span>{provinceMap[formData.province] || '(Chưa chọn)'}</span>
                   </div>
+                  {mode === 'edit' && (
+                    <div className="summary-item">
+                      <label>Trạng thái hoạt động:</label>
+                      <span>{formData.status}</span>
+                    </div>
+                  )}
                   <div className="summary-item">
                     <label>Số điện thoại:</label>
                     <span>{formData.phone || '(Chưa nhập số điện thoại)'}</span>

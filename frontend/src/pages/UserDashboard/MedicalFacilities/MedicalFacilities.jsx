@@ -284,7 +284,7 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
     const statusConfig = {
       active: { label: 'Hoạt động', class: 'success' },
       pending: { label: 'Chờ duyệt', class: 'warning' },
-      inactive: { label: 'Ngừng hoạt động', class: 'danger' }
+      inactive: { label: 'Ngưng hoạt động', class: 'danger' }
     };
     const config = statusConfig[status] || { label: status || 'Không rõ', class: 'secondary' };
     return <span className={`badge bg-${config.class}`}>{config.label}</span>;
@@ -565,7 +565,7 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
                                   phone: f.phone,
                                   province_id: f.raw?.province_id || '',
                                   province: f.raw?.province || '',
-                                  services: f.services,
+                                  services: f.raw.services,
                                   status: f.status,
                                   // SỬA: Xử lý location an toàn
                                   location: f.raw?.facility_point_id || null,

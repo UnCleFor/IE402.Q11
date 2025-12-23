@@ -141,7 +141,6 @@ export const TokenAlertProvider = ({ children }) => {
 
             // Nếu token đã hết hạn và chưa đăng xuất
             if (timeUntilExpiry <= 0 && localStorage.getItem('authToken')) {
-                console.log('⏰ Token expired, auto logout');
                 handleAutoLogout();
             }
         } catch (error) {
@@ -182,7 +181,6 @@ export const TokenAlertProvider = ({ children }) => {
             // 60 phút không hoạt động sẽ logout
             inactivityTimer = setTimeout(() => {
                 if (localStorage.getItem('authToken')) {
-                    console.log('🕒 Inactivity timeout, auto logout');
                     logout();
 
                     if (!window.location.pathname.includes('/login')) {
