@@ -8,7 +8,7 @@ const {
   v4: uuidv4
 } = require("uuid");
 
-class Location extends Model {}
+class Location extends Model { }
 
 Location.init({
   location_id: {

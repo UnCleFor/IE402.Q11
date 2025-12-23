@@ -13,7 +13,7 @@ const UnauthorizedPage = () => {
             </div>
             <h1 className="display-4 text-danger mb-3">Truy Cập Bị Từ Chối</h1>
             <p className="lead mb-4">
-              Bạn không có quyền truy cập vào trang này. 
+              Bạn không có quyền truy cập vào trang này.
               Trang này chỉ dành cho quản trị viên.
             </p>
             <div className="d-flex justify-content-center gap-3">

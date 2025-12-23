@@ -31,7 +31,6 @@
 
 .stat-value {
   font-size: 2rem;
-  /* Tăng kích thước */
   font-weight: 700;
   color: #2c3e50;
   line-height: 1;
@@ -128,7 +127,6 @@
   opacity: 0.8;
 }
 
-/* ========== PHẦN FILTERS MỚI ========== */
 .facilities-filters {
   background: white;
   padding: 1.5rem;
@@ -137,7 +135,6 @@
   margin-bottom: 1.5rem;
 }
 
-/* Search box - toàn bộ chiều rộng */
 .search-box {
   position: relative;
   display: flex;
@@ -169,7 +166,6 @@
   box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
 }
 
-/* Status filter row - các nút lọc thẳng hàng */
 .status-filter-row {
   margin-bottom: 1rem;
 }
@@ -226,7 +222,6 @@
   box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
 }
 
-/* Items per page selector - căn phải */
 .items-per-page-selector {
   display: flex;
   align-items: center;
@@ -264,9 +259,6 @@
   padding: 0.5rem;
 }
 
-/* ========== END FILTERS ========== */
-
-/* Facility List */
 .facility-list {
   background: white;
   border-radius: 15px;
@@ -401,7 +393,6 @@
   color: #2c3e50;
 }
 
-/* Phân trang */
 .pagination-container {
   padding: 1.5rem;
   border-top: 1px solid #e9ecef;
@@ -454,12 +445,10 @@
   font-weight: 500;
 }
 
-/* Đảm bảo bảng responsive */
 .table-responsive {
   overflow-x: auto;
 }
 
-/* Thêm STT column */
 .facilities-table th:nth-child(1),
 .facilities-table td:nth-child(1) {
   width: 60px;
@@ -467,7 +456,6 @@
   font-weight: 600;
 }
 
-/* Responsive cho mobile */
 @media (max-width: 992px) {
   .facility-stats-overview {
     grid-template-columns: repeat(2, 1fr);

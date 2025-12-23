@@ -6,8 +6,6 @@ import DashboardStats from './DashboardStats/DashboardStats';
 import MedicalFacilities from './MedicalFacilities/MedicalFacilities';
 import Pharmacies from './Pharmacies/Pharmacies';
 import OutbreakManagement from './OutbreakManagement/OutbreakManagement';
-import QuickActions from './QuickActions/QuickActions';
-import RecentActivity from './RecentActivity/RecentActivity';
 import FacilityForm from './FormComponents/FacilityForm/FacilityForm';
 import PharmacyForm from "./FormComponents/PharmacyForm/PharmacyForm";
 import OutbreakForm from './FormComponents/OutbreakForm/OutbreakForm';
@@ -15,8 +13,6 @@ import ReportForm from './FormComponents/ReportForm/ReportForm';
 import MapPicker from './MapComponents/MapPicker/MapPicker'
 import PolygonDrawer from './MapComponents/PolygonDrawer/PolygonDrawer';
 import UsersList from './UsersList/UsersList';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import outbreakServices from '../../services/outbreakServices';
 
 const UserDashboard = () => {
@@ -31,92 +27,39 @@ const UserDashboard = () => {
   const [editingFacility, setEditingFacility] = useState(null);
   const [editingPharmacy, setEditingPharmacy] = useState(null);
   const [editingOutbreak, setEditingOutbreak] = useState(null);
-  const [accessDenied, setAccessDenied] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Thêm state loading
- const [refreshOutbreakTrigger, setRefreshOutbreakTrigger] = useState(0);
-  const navigate = useNavigate();
-  const { user, hasRole, loading } = useAuth();
 
-  // Kiểm tra quyền truy cập khi component mount
-  useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [refreshOutbreakTrigger, setRefreshOutbreakTrigger] = useState(0);
 
-      if (!hasRole('admin')) {
-        setAccessDenied(true);
-        navigate('/unauthorized');
-      }
-    }
-  }, [user, hasRole, loading, navigate]);
-
+  // Chuyển đổi trạng thái sidebar
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Xử lý form người dùng
-  const handleUserSubmit = (userData) => {
-    console.log('User data submitted:', userData);
-    // Gửi API hoặc xử lý dữ liệu
-    setShowUserForm(false);
-    setEditingUser(null);
-    // Hiển thị thông báo thành công
-    alert(editingUser ? 'Cập nhật người dùng thành công!' : 'Thêm người dùng thành công!');
-  };
-
   // Xử lý form cơ sở y tế
   const handleFacilitySubmit = (facilityData) => {
-    console.log('Facility data submitted:', facilityData);
-    // Gửi API hoặc xử lý dữ liệu
     setShowFacilityForm(false);
     setEditingFacility(null);
-
-    // Hiển thị thông báo thành công
     alert(editingFacility ? 'Cập nhật cơ sở y tế thành công!' : 'Thêm cơ sở y tế thành công!');
   };
 
-  // Xử lý form nhà thuốc
-  const handlePharmacySubmit = (pharmacyData) => {
-    console.log('Pharmacy data submitted:', pharmacyData);
-    // Gửi API hoặc xử lý dữ liệu
-    setShowPharmacyForm(false);
-    setEditingPharmacy(null);
-
-    // Hiển thị thông báo thành công
-    alert(editingPharmacy ? 'Cập nhật nhà thuốc thành công!' : 'Thêm nhà thuốc thành công!');
-  };
-
-
   // Xử lý form vùng dịch
-   const handleOutbreakSubmit = async (outbreakData) => {
-    console.log('Outbreak data to submit:', outbreakData);
-    
+  const handleOutbreakSubmit = async (outbreakData) => {
     setIsSubmitting(true);
-    
     try {
       let result;
-      
       if (editingOutbreak) {
         result = await outbreakServices.updateOutbreak(
-          editingOutbreak.outbreak_id || editingOutbreak.id, 
+          editingOutbreak.outbreak_id || editingOutbreak.id,
           outbreakData
         );
       } else {
         result = await outbreakServices.createOutbreak(outbreakData);
       }
-      
-      //console.log('API response:', result);
-      
       if (result.success !== false) {
-        // Đóng form
         setShowOutbreakForm(false);
         setEditingOutbreak(null);
-        
-        // TRIGGER RELOAD - quan trọng
         setRefreshOutbreakTrigger(prev => prev + 1);
-        
       } else {
         alert(result.message || 'Có lỗi xảy ra khi gửi dữ liệu');
       }
@@ -127,21 +70,20 @@ const UserDashboard = () => {
       setIsSubmitting(false);
     }
   };
+
   // Xử lý form báo cáo
   const handleReportSubmit = (reportData) => {
-    console.log('Report data submitted:', reportData);
-    // Gửi API hoặc xử lý dữ liệu
     setShowReportForm(false);
-
-    // Hiển thị thông báo thành công
     alert('Tạo báo cáo thành công!');
   };
+
   // Mở form chỉnh sửa người dùng
   const handleEditUser = (user) => {
     setShowUserForm(true);
     setEditingUser(user);
     setActiveSection('users');
   }
+
   // Mở form chỉnh sửa cơ sở y tế
   const handleEditFacility = (facility) => {
     setEditingFacility(facility);
@@ -149,19 +91,15 @@ const UserDashboard = () => {
     setActiveSection('facilities');
   };
 
+  // Xoá cơ sở y tế
   const handleDeleteFacility = async (facilityId) => {
     if (!window.confirm("Bạn có chắc muốn xoá cơ sở này không?")) return;
-
     try {
       const res = await fetch(`http://localhost:3001/api/medical-facilities/${facilityId}`, {
         method: "DELETE",
       });
-
       if (!res.ok) throw new Error("Xoá thất bại");
-
       alert("Đã xoá thành công!");
-
-      // Reload danh sách cơ sở
       setActiveSection("facilities");
     } catch (err) {
       alert("Lỗi: " + err.message);
@@ -175,6 +113,7 @@ const UserDashboard = () => {
     setActiveSection('outbreak');
   };
 
+  // Render nội dung chính dựa trên phần đang hoạt động
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
@@ -244,7 +183,6 @@ const UserDashboard = () => {
               <h2>Công Cụ Bản Đồ</h2>
               <p>Sử dụng các công cụ bản đồ để quản lý dữ liệu không gian</p>
             </div>
-
             <div className="row">
               <div className="col-lg-6">
                 <div className="tool-card">
@@ -252,8 +190,6 @@ const UserDashboard = () => {
                   <p>Chọn vị trí chính xác cho cơ sở y tế</p>
                   <MapPicker
                     onLocationSelect={(location) => {
-                      console.log('Selected location:', location);
-                      //alert(`Đã chọn vị trí: ${location.address}`);
                     }}
                     height="300px"
                   />
@@ -265,8 +201,6 @@ const UserDashboard = () => {
                   <p>Khoanh vùng các khu vực bị ảnh hưởng bởi dịch bệnh</p>
                   <PolygonDrawer
                     onPolygonComplete={(polygon) => {
-                      console.log('Polygon completed:', polygon);
-                      //alert(`Đã vẽ vùng dịch với ${polygon.length} điểm`);
                     }}
                     height="300px"
                   />
@@ -378,7 +312,7 @@ const UserDashboard = () => {
               <div className="modal-body">
                 <FacilityForm
                   onSubmit={handleFacilitySubmit}
-                  initialData={editingFacility || {}} // Đảm bảo luôn có object
+                  initialData={editingFacility || {}}
                   mode={editingFacility ? 'edit' : 'create'}
                 />
               </div>
@@ -399,7 +333,6 @@ const UserDashboard = () => {
                 <button className="btn-close" onClick={() => { setShowFacilityForm(false); setEditingFacility(null); }}></button>
               </div>
               <div className="modal-body">
-                {/* DEBUG INFO */}
                 {editingFacility && (
                   <div className="alert alert-info mb-3">
                     <p><strong>Debug - Dữ liệu đang chỉnh sửa:</strong></p>
@@ -409,7 +342,7 @@ const UserDashboard = () => {
                     <p>API sẽ dùng: {editingFacility ? 'PUT' : 'POST'}</p>
                   </div>
                 )}
-                
+
                 <FacilityForm
                   onSubmit={handleFacilitySubmit}
                   initialData={editingFacility || {}}
@@ -421,7 +354,7 @@ const UserDashboard = () => {
         </div>
       )}
 
-       {showOutbreakForm && (
+      {showOutbreakForm && (
         <div className="modal-overlay active">
           <div className="modal-container">
             <div className="modal-content large">

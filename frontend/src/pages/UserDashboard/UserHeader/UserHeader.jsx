@@ -44,45 +44,42 @@ const UserHeader = ({ toggleSidebar, sidebarCollapsed }) => {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  // Đánh dấu thông báo là đã đọc
   const markAsRead = (id) => {
-    setNotifications(notifications.map(notif => 
+    setNotifications(notifications.map(notif =>
       notif.id === id ? { ...notif, read: true } : notif
     ));
   };
 
+  // Đánh dấu tất cả thông báo là đã đọc
   const markAllAsRead = () => {
     setNotifications(notifications.map(notif => ({ ...notif, read: true })));
   };
 
+  // Lấy tên hiển thị của user
   const getUserDisplayName = () => {
     if (!user) return 'Người dùng';
-    
-    // Ưu tiên hiển thị username, nếu không có thì dùng email
     return user.user_name || user.name || user.email || 'Người dùng';
   };
 
+  // Lấy avatar của user
   const getUserAvatar = () => {
     if (!user) return <i className="bi bi-person-circle"></i>;
-    
-    // Nếu user có avatar URL
     if (user.avatar) {
       return <img src={user.avatar} alt={getUserDisplayName()} />;
     }
-    
-    // Nếu có tên, hiển thị chữ cái đầu
     if (user.name || user.username) {
       const name = user.name || user.username;
       const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
       return <span className="avatar-initials">{initials.substring(0, 2)}</span>;
     }
-    
-    // Mặc định
     return <i className="bi bi-person-circle"></i>;
   };
 
+  // Lấy vai trò của user
   const getUserRole = () => {
     if (!user) return '';
-    
+
     const roleNames = {
       'admin': 'Quản trị viên',
       'doctor': 'Bác sĩ',
@@ -90,16 +87,14 @@ const UserHeader = ({ toggleSidebar, sidebarCollapsed }) => {
       'staff': 'Nhân viên',
       'user': 'Người dùng'
     };
-    
+
     return roleNames[user.role] || user.role || '';
   };
 
+  // Xử lý đăng xuất
   const handleLogout = () => {
-    // Xóa token và user info khỏi localStorage
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-    
-    // Chuyển hướng về trang login
     window.location.href = '/login';
   };
 
@@ -109,7 +104,7 @@ const UserHeader = ({ toggleSidebar, sidebarCollapsed }) => {
         <div className="row align-items-center">
           <div className="col">
             {/* Sidebar Toggle */}
-            <button 
+            <button
               className="btn sidebar-toggle"
               onClick={toggleSidebar}
             >
@@ -132,10 +127,10 @@ const UserHeader = ({ toggleSidebar, sidebarCollapsed }) => {
 
           <div className="col-auto">
             <div className="header-actions">
-   
+
               {/* Notifications */}
               <div className="dropdown notification-dropdown">
-                <button 
+                <button
                   className="btn notification-btn"
                   data-bs-toggle="dropdown"
                 >
@@ -148,7 +143,7 @@ const UserHeader = ({ toggleSidebar, sidebarCollapsed }) => {
                   <div className="notification-header">
                     <h6>Thông báo</h6>
                     {unreadCount > 0 && (
-                      <button 
+                      <button
                         className="btn btn-sm btn-link"
                         onClick={markAllAsRead}
                       >
@@ -158,16 +153,15 @@ const UserHeader = ({ toggleSidebar, sidebarCollapsed }) => {
                   </div>
                   <div className="notification-list">
                     {notifications.map(notification => (
-                      <div 
-                        key={notification.id} 
+                      <div
+                        key={notification.id}
                         className={`notification-item ${notification.read ? 'read' : 'unread'}`}
                         onClick={() => markAsRead(notification.id)}
                       >
                         <div className={`notification-icon ${notification.type}`}>
-                          <i className={`bi bi-${
-                            notification.type === 'outbreak' ? 'virus' : 
-                            notification.type === 'facility' ? 'hospital' : 'gear'
-                          }`}></i>
+                          <i className={`bi bi-${notification.type === 'outbreak' ? 'virus' :
+                              notification.type === 'facility' ? 'hospital' : 'gear'
+                            }`}></i>
                         </div>
                         <div className="notification-content">
                           <h6>{notification.title}</h6>
@@ -187,7 +181,7 @@ const UserHeader = ({ toggleSidebar, sidebarCollapsed }) => {
 
               {/* User Menu */}
               <div className="dropdown user-dropdown">
-                <button 
+                <button
                   className="btn user-btn"
                   data-bs-toggle="dropdown"
                 >
@@ -221,8 +215,8 @@ const UserHeader = ({ toggleSidebar, sidebarCollapsed }) => {
                     Hồ sơ cá nhân
                   </a>
                   <div className="dropdown-divider"></div>
-                  <button 
-                    className="dropdown-item text-danger" 
+                  <button
+                    className="dropdown-item text-danger"
                     onClick={handleLogout}
                   >
                     <i className="bi bi-box-arrow-right me-2"></i>

@@ -1,6 +1,7 @@
 const provinceService = require("../services/province.service");
 
 module.exports = {
+    // Tạo mới tỉnh
     async create(req, res) {
         try {
             const province = await provinceService.createProvince(req.body);
@@ -12,6 +13,7 @@ module.exports = {
         }
     },
 
+    // Lấy tất cả tỉnh
     async findAll(req, res) {
         try {
             const provinces = await provinceService.getAllProvinces();
@@ -23,6 +25,7 @@ module.exports = {
         }
     },
 
+    // Lấy tỉnh theo ID
     async findOne(req, res) {
         try {
             const {
@@ -41,7 +44,7 @@ module.exports = {
         }
     },
 
-    // 🔍 tìm kiếm
+    // Tìm kiếm tỉnh theo tên, id, tên viết tắt
     async search(req, res) {
         try {
             const {
@@ -57,6 +60,7 @@ module.exports = {
         }
     },
 
+    // Cập nhật tỉnh theo ID
     async update(req, res) {
         try {
             const {
@@ -75,6 +79,7 @@ module.exports = {
         }
     },
 
+    // Xóa tỉnh theo ID
     async delete(req, res) {
         try {
             const {

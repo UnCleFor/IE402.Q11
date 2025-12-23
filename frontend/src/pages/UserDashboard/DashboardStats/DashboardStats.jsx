@@ -5,17 +5,16 @@ import pharmacyService from '../../../services/pharmacyService';
 import outbreakServices from '../../../services/outbreakServices';
 import provinceService from '../../../services/provinceService';
 
-// Components cho biểu đồ
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell,
   LineChart, Line,
   AreaChart, Area,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  Treemap
 } from 'recharts';
 
 const DashboardStats = () => {
+  // State để lưu trữ tất cả dữ liệu thống kê
   const [stats, setStats] = useState({
     facilities: {
       total: 0,
@@ -52,6 +51,7 @@ const DashboardStats = () => {
     }
   });
 
+  // Thống kê tổng quan
   const [overallStats, setOverallStats] = useState({
     totalEntities: 0,
     lastUpdated: null,
@@ -63,10 +63,9 @@ const DashboardStats = () => {
     fetchAllData();
   }, []);
 
-  // Helper function để lấy tên tỉnh từ province_id
+  // Helper function để lấy tên tỉnh từ ID
   const getProvinceName = async (id) => {
     if (!id) return 'Không xác định';
-
     try {
       const res = await provinceService.searchProvinces(id);
       if (Array.isArray(res) && res.length > 0) {
@@ -80,7 +79,7 @@ const DashboardStats = () => {
     }
   };
 
-  // Helper function để format date
+  // Helper function để định dạng ngày tháng
   const formatDate = (dateString) => {
     if (!dateString) return null;
     const date = new Date(dateString);
@@ -94,43 +93,34 @@ const DashboardStats = () => {
     return `${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
+  // Hàm fetch tất cả dữ liệu và xử lý
   const fetchAllData = async () => {
     try {
-      // Fetch song song tất cả dữ liệu
       const [facilitiesRes, pharmaciesRes, outbreaksRes] = await Promise.all([
         facilityService.getAllFacilities(),
         pharmacyService.getAllPharmacies(),
         outbreakServices.getAllOutbreaks()
       ]);
 
-      console.log('Facilities data:', facilitiesRes);
-      console.log('Pharmacies data:', pharmaciesRes);
-      console.log('Outbreaks data:', outbreaksRes?.data);
-
-      // Process facilities data
+      // Xử lý dữ liệu cơ sở y tế
       let facilitiesData = [];
       let facilitiesByType = {};
       let facilitiesByProvince = {};
       let facilitiesByStatus = {};
       let facilitiesByCreator = {};
       let facilitiesMonthlyData = {};
-
       if (facilitiesRes && Array.isArray(facilitiesRes)) {
         facilitiesData = facilitiesRes;
-
-        // Tạo mảng promises để lấy tên tỉnh
         const facilitiesWithProvinces = await Promise.all(
           facilitiesData.map(async (facility) => {
             const provinceName = await getProvinceName(facility.province_id);
 
-            // Phân loại theo loại cơ sở
+            // Phân loại theo loại cơ sở y tế
             const type = facility.type_id || facility.facility_type || 'Khác';
             facilitiesByType[type] = (facilitiesByType[type] || 0) + 1;
-
-            // Phân loại theo tỉnh/thành
             facilitiesByProvince[provinceName] = (facilitiesByProvince[provinceName] || 0) + 1;
 
-            // Phân loại theo trạng thái (nếu có)
+            // Phân loại theo trạng thái
             const status = facility.status || facility.is_active || 'active';
             facilitiesByStatus[status] = (facilitiesByStatus[status] || 0) + 1;
 
@@ -144,7 +134,6 @@ const DashboardStats = () => {
             if (month) {
               facilitiesMonthlyData[month] = (facilitiesMonthlyData[month] || 0) + 1;
             }
-
             return {
               ...facility,
               province_name: provinceName,
@@ -152,20 +141,17 @@ const DashboardStats = () => {
             };
           })
         );
-
         facilitiesData = facilitiesWithProvinces;
       }
 
-      // Process pharmacies data
+      // Xử lý dữ liệu nhà thuốc
       let pharmaciesData = [];
       let pharmaciesByProvince = {};
       let pharmaciesByStatus = {};
       let pharmaciesByType = {};
       let pharmaciesMonthlyData = {};
-
       if (pharmaciesRes && Array.isArray(pharmaciesRes)) {
         pharmaciesData = pharmaciesRes;
-
         const pharmaciesWithProvinces = await Promise.all(
           pharmaciesData.map(async (pharmacy) => {
             const provinceName = await getProvinceName(pharmacy.province_id);
@@ -199,7 +185,7 @@ const DashboardStats = () => {
         pharmaciesData = pharmaciesWithProvinces;
       }
 
-      // Process outbreaks data
+      // Xử lý dữ liệu vùng dịch
       let outbreaksData = [];
       let outbreaksByDisease = {};
       let outbreaksBySeverity = {
@@ -211,10 +197,8 @@ const DashboardStats = () => {
       let outbreaksByStatus = {};
       let outbreaksMonthlyData = {};
       let outbreaksCasesByMonth = {};
-
       if (outbreaksRes && outbreaksRes.data && Array.isArray(outbreaksRes.data)) {
         outbreaksData = outbreaksRes.data;
-
         const outbreaksWithProvinces = await Promise.all(
           outbreaksData.map(async (outbreak) => {
             const provinceName = await getProvinceName(outbreak.province_id);
@@ -255,7 +239,6 @@ const DashboardStats = () => {
             };
           })
         );
-
         outbreaksData = outbreaksWithProvinces;
       }
 
@@ -271,7 +254,7 @@ const DashboardStats = () => {
           });
       };
 
-      // Update stats
+      // Cập nhật state với dữ liệu đã xử lý
       setStats({
         facilities: {
           total: facilitiesData.length,
@@ -315,13 +298,12 @@ const DashboardStats = () => {
         }
       });
 
-      // Update overall stats
+      // Cập nhật thống kê tổng quan
       setOverallStats({
         totalEntities: facilitiesData.length + pharmaciesData.length + outbreaksData.length,
         lastUpdated: new Date().toLocaleString('vi-VN'),
         loading: false
       });
-
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setStats(prev => ({
@@ -397,33 +379,9 @@ const DashboardStats = () => {
     }));
   };
 
-  // Biểu đồ phân bố theo tỉnh (tổng hợp)
-  const getProvinceDistributionData = () => {
-    const { byProvince } = stats.facilities;
-    if (!byProvince || typeof byProvince !== 'object') return [];
-
-    return Object.entries(byProvince)
-      .filter(([name]) => name !== 'Không xác định')
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 8)
-      .map(([name, value]) => ({ name, value }));
-  };
-
   // Biểu đồ nhà thuốc theo tỉnh
   const getPharmacyProvinceChartData = () => {
     const { byProvince } = stats.pharmacies;
-    if (!byProvince || typeof byProvince !== 'object') return [];
-
-    return Object.entries(byProvince)
-      .filter(([name]) => name !== 'Không xác định')
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 8)
-      .map(([name, value]) => ({ name, value }));
-  };
-
-  // Biểu đồ vùng dịch theo tỉnh
-  const getOutbreakProvinceChartData = () => {
-    const { byProvince } = stats.outbreaks;
     if (!byProvince || typeof byProvince !== 'object') return [];
 
     return Object.entries(byProvince)
@@ -437,7 +395,6 @@ const DashboardStats = () => {
   const getOutbreakDiseaseChartData = () => {
     const { byDisease } = stats.outbreaks;
     if (!byDisease || typeof byDisease !== 'object') return [];
-
     return Object.entries(byDisease).map(([name, value]) => ({
       name: getDiseaseLabel(name),
       value
@@ -454,7 +411,6 @@ const DashboardStats = () => {
         { name: 'Thấp', value: 0, color: '#2ecc71' }
       ];
     }
-
     return [
       { name: 'Cao', value: bySeverity.high || bySeverity.cao || 0, color: '#e74c3c' },
       { name: 'Trung bình', value: bySeverity.medium || bySeverity['trung bình'] || bySeverity.trung_binh || 0, color: '#f39c12' },
@@ -470,9 +426,9 @@ const DashboardStats = () => {
     const statusLabels = {
       'active': 'Đang hoạt động',
       'inactive': 'Ngừng hoạt động',
-      'maintenance': 'Bảo trì',
       'Đang hoạt động': 'Đang hoạt động',
-      'Ngừng hoạt động': 'Ngừng hoạt động'
+      'Ngừng hoạt động': 'Ngừng hoạt động',
+      'pending': 'Đang chờ duyệt',
     };
 
     return Object.entries(byStatus).map(([name, value]) => ({
@@ -534,42 +490,7 @@ const DashboardStats = () => {
     ];
   };
 
-  // Biểu đồ treemap phân bố tỉnh thành
-  const getTreemapData = () => {
-    const { byProvince: facilityProvince } = stats.facilities;
-    const { byProvince: pharmacyProvince } = stats.pharmacies;
-    const { byProvince: outbreakProvince } = stats.outbreaks;
-
-    const allProvinces = new Set([
-      ...Object.keys(facilityProvince || {}),
-      ...Object.keys(pharmacyProvince || {}),
-      ...Object.keys(outbreakProvince || {})
-    ]);
-
-    return Array.from(allProvinces)
-      .filter(province => province !== 'Không xác định')
-      .map(province => {
-        const facilityCount = facilityProvince?.[province] || 0;
-        const pharmacyCount = pharmacyProvince?.[province] || 0;
-        const outbreakCount = outbreakProvince?.[province] || 0;
-        const total = facilityCount + pharmacyCount + outbreakCount;
-
-        return {
-          name: province,
-          size: total,
-          children: [
-            { name: 'Cơ sở y tế', size: facilityCount, color: '#3498db' },
-            { name: 'Nhà thuốc', size: pharmacyCount, color: '#9b59b6' },
-            { name: 'Vùng dịch', size: outbreakCount, color: '#e74c3c' }
-          ]
-        };
-      })
-      .filter(item => item.size > 0)
-      .sort((a, b) => b.size - a.size)
-      .slice(0, 10);
-  };
-
-  // Helper functions
+  // Hàm lấy nhãn bệnh dịch
   const getDiseaseLabel = (diseaseId) => {
     const diseaseMap = {
       'DENGUE': 'Sốt xuất huyết',
@@ -584,6 +505,7 @@ const DashboardStats = () => {
     return diseaseMap[diseaseId] || diseaseId;
   };
 
+  // Hàm làm mới dữ liệu
   const refreshData = () => {
     setStats(prev => ({
       facilities: { ...prev.facilities, loading: true },
@@ -594,7 +516,7 @@ const DashboardStats = () => {
     fetchAllData();
   };
 
-  // Loading state
+  // Giao diện khi đang tải dữ liệu
   if (overallStats.loading) {
     return (
       <div className="dashboard-stats">
@@ -819,7 +741,7 @@ const DashboardStats = () => {
             </div>
           </div>
 
-         
+
 
           {/* Biểu đồ xu hướng theo tháng */}
           <div className="col-lg-6">
@@ -897,7 +819,7 @@ const DashboardStats = () => {
                     <Radar name="Nhà thuốc" dataKey="Nhà thuốc" stroke="#9b59b6" fill="#9b59b6" fillOpacity={0.6} />
                     <Radar name="Vùng dịch" dataKey="Vùng dịch" stroke="#e74c3c" fill="#e74c3c" fillOpacity={0.6} />
                     <Legend verticalAlign="bottom"
-                            height={1} />
+                      height={1} />
                     <Tooltip />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -905,7 +827,7 @@ const DashboardStats = () => {
             </div>
           </div>
 
-           {/* Biểu đồ trạng thái vùng dịch */}
+          {/* Biểu đồ trạng thái vùng dịch */}
           <div className="col-lg-6">
             <div className="chart-card">
               <div className="card-header">
@@ -1042,7 +964,7 @@ const DashboardStats = () => {
 
                       {/* Bảng thống kê chi tiết bên dưới biểu đồ */}
                       <div className="province-details mt-3">
-                        <h6 className="mb-2">Chi tiết phân bố:</h6>
+                        
                         <div className="table-responsive">
                           <table className="table table-sm table-hover">
                             <thead>
@@ -1066,7 +988,7 @@ const DashboardStats = () => {
                                     </span>
                                   </td>
                                   <td className="text-center">
-                                    <span className="badge bg-purple">
+                                    <span className="badge bg-info">
                                       {item['Nhà thuốc']}
                                     </span>
                                   </td>

@@ -4,7 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapPicker.css';
 
-// Fix cho icon marker trong React-Leaflet
+// Cấu hình icon mặc định của Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -12,18 +12,19 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// Component chọn điểm
+// Component con để xử lý sự kiện chọn điểm trên bản đồ
 const PointPicker = ({ onPointSelect, selectedPoint, isSelecting }) => {
+
+  // Sử dụng hook để xử lý sự kiện bản đồ
   const map = useMapEvents({
     click: (e) => {
       if (!isSelecting) return;
-      
+
       const { lat, lng } = e.latlng;
       const point = { lat, lng };
-      
-      // Gọi callback với điểm đã chọn
+
       onPointSelect(point);
-      
+
       // Tạo marker cho điểm đã chọn
       const marker = L.marker([lat, lng], {
         icon: new L.DivIcon({
@@ -31,7 +32,7 @@ const PointPicker = ({ onPointSelect, selectedPoint, isSelecting }) => {
           iconSize: [12, 12]
         })
       }).addTo(map);
-      
+
       marker.bindTooltip(`Điểm đã chọn: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
         permanent: true,
         direction: 'top'
@@ -43,7 +44,7 @@ const PointPicker = ({ onPointSelect, selectedPoint, isSelecting }) => {
           map.removeLayer(layer);
         }
       });
-      
+
       // Zoom vào điểm đã chọn
       map.setView([lat, lng], 16);
     }
@@ -52,42 +53,41 @@ const PointPicker = ({ onPointSelect, selectedPoint, isSelecting }) => {
   // Hiển thị marker nếu có selectedPoint
   useEffect(() => {
     if (!selectedPoint || isSelecting) return;
-      const { lat, lng } = selectedPoint;
-      
-      // Xóa tất cả markers cũ
-      map.eachLayer((layer) => {
-        if (layer instanceof L.Marker) {
-          map.removeLayer(layer);
-        }
-      });
-      
-      // Tạo marker mới
-      const marker = L.marker([lat, lng], {
-        icon: new L.DivIcon({
-          className: 'point-marker',
-          iconSize: [12, 12]
-        })
-      }).addTo(map);
-      
-      marker.bindTooltip(`Điểm đã chọn: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
-        permanent: true,
-        direction: 'top'
-      });
-      
-      // Zoom vào điểm
-      map.setView([lat, lng], 16);
+    const { lat, lng } = selectedPoint;
+
+    // Xóa tất cả markers cũ
+    map.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        map.removeLayer(layer);
+      }
+    });
+
+    // Tạo marker mới
+    const marker = L.marker([lat, lng], {
+      icon: new L.DivIcon({
+        className: 'point-marker',
+        iconSize: [12, 12]
+      })
+    }).addTo(map);
+
+    marker.bindTooltip(`Điểm đã chọn: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
+      permanent: true,
+      direction: 'top'
+    });
+
+    // Zoom vào điểm
+    map.setView([lat, lng], 16);
 
   }, [selectedPoint, map, isSelecting]);
 
   return null;
 };
 
-// Component chính
-const MapPicker = ({ 
-  onLocationSelect, 
-  initialPoint, 
+const MapPicker = ({
+  onLocationSelect,
+  initialPoint,
   height = "400px",
-  showClearButton = true 
+  showClearButton = true
 }) => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState(initialPoint);
@@ -96,45 +96,43 @@ const MapPicker = ({
   // Khởi tạo điểm nếu có initialPoint
   const isInitializedRef = useRef(false);
 
+  // Hiệu ứng khởi tạo điểm ban đầu
   useEffect(() => {
     if (!initialPoint) return;
     if (isInitializedRef.current) return;
-
-    console.log("Init point:", initialPoint);
     setSelectedPoint(initialPoint);
     isInitializedRef.current = true;
   }, [initialPoint]);
 
-  const handlePointSelect = useCallback((point) => {    
+  // Xử lý khi người dùng chọn điểm trên bản đồ
+  const handlePointSelect = useCallback((point) => {
     setSelectedPoint(point);
-
-    // Gọi callback với dữ liệu điểm
     if (onLocationSelect) {
       onLocationSelect(point);
     }
-    
-    // Tự động thoát chế độ chọn sau khi chọn
     setIsSelecting(false);
   }, [onLocationSelect]);
 
+  // Xử lý các nút bấm
   const handleStartSelecting = () => {
     setIsSelecting(true);
   };
 
+  // Chỉnh sửa điểm đã chọn
   const handleEditSelecting = () => {
-    setSelectedPoint(null); 
+    setSelectedPoint(null);
     setIsSelecting(true);
-};
+  };
 
+  // Hủy chọn điểm
   const handleCancelSelecting = () => {
     setIsSelecting(false);
   };
 
+  // Xóa điểm đã chọn
   const handleClearSelection = () => {
     setSelectedPoint(null);
     setIsSelecting(false);
-    
-    // Xóa tất cả markers trên bản đồ
     if (mapRef.current) {
       mapRef.current.eachLayer((layer) => {
         if (layer instanceof L.Marker) {
@@ -142,8 +140,6 @@ const MapPicker = ({
         }
       });
     }
-    
-    // Reset về view mặc định
     if (mapRef.current) {
       mapRef.current.setView([10.762622, 106.660172], 14);
     }
@@ -152,7 +148,6 @@ const MapPicker = ({
   // Định dạng tọa độ cho hiển thị
   const formatCoordinates = (point) => {
     if (!point) return null;
-    
     return {
       lat: point.lat.toFixed(6),
       lng: point.lng.toFixed(6)
@@ -166,7 +161,7 @@ const MapPicker = ({
         <div className="picker-buttons">
           {!isSelecting ? (
             !selectedPoint ? (
-              <button 
+              <button
                 className="btn btn-sm btn-primary"
                 onClick={handleStartSelecting}
               >
@@ -175,15 +170,15 @@ const MapPicker = ({
               </button>
             ) : (
               <>
-                <button 
+                <button
                   className="btn btn-sm btn-warning"
                   onClick={handleEditSelecting}
                 >
                   <i className="bi bi-check-circle me-1"></i>
                   Chỉnh sửa
                 </button>
-              
-                <button 
+
+                <button
                   className="btn btn-sm btn-success"
                   disabled
                 >
@@ -194,15 +189,15 @@ const MapPicker = ({
             )
           ) : (
             <>
-              <button 
+              <button
                 className="btn btn-sm btn-secondary"
                 disabled
               >
                 <i className="bi bi-cursor me-1"></i>
                 Đang chọn điểm
               </button>
-              
-              <button 
+
+              <button
                 className="btn btn-sm btn-danger"
                 onClick={handleCancelSelecting}
               >
@@ -211,9 +206,9 @@ const MapPicker = ({
               </button>
             </>
           )}
-          
+
           {showClearButton && (
-            <button 
+            <button
               className="btn btn-sm btn-outline-danger"
               onClick={handleClearSelection}
               disabled={!selectedPoint}
@@ -261,7 +256,7 @@ const MapPicker = ({
           />
 
           {/* Component chọn điểm */}
-          <PointPicker 
+          <PointPicker
             onPointSelect={handlePointSelect}
             selectedPoint={selectedPoint}
             isSelecting={isSelecting}
@@ -277,7 +272,7 @@ const MapPicker = ({
             {selectedPoint ? 'Đã chọn' : 'Chưa chọn'}
           </span>
         </div>
-        
+
         {!selectedPoint ? (
           <div className="no-selection">
             <i className="bi bi-geo-alt"></i>

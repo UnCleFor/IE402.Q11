@@ -105,6 +105,6 @@ export const routes = [{
         path: '/medical-facility',
         page: React.lazy(() => import("../pages/MedicalFacilityPage/MedicalFacilityPage")),
         isShowHeader: true,
-        isPublic: false, 
+        isPublic: true, 
     }
 ]

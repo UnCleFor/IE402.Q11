@@ -9,24 +9,29 @@ const {
   calculateHaversineDistance
 } = require("../utils/search.utils");
 
+// Tạo cơ sở y tế mới
 async function createFacility(data) {
   return await MedicalFacility.create(data);
 }
 
+// Lấy tất cả cơ sở y tế
 async function getAllFacilities() {
   return await MedicalFacility.findAll();
 }
 
+// Lấy cơ sở y tế theo ID
 async function getFacilityById(id) {
   return await MedicalFacility.findByPk(id);
 }
 
+// Cập nhật cơ sở y tế theo ID
 async function updateFacility(id, data) {
   const facility = await MedicalFacility.findByPk(id);
   if (!facility) return null;
   return await facility.update(data);
 }
 
+// Xóa cơ sở y tế theo ID
 async function deleteFacility(id) {
   const facility = await MedicalFacility.findByPk(id);
   if (!facility) return null;
@@ -48,6 +53,7 @@ async function deleteFacility(id) {
   return true;
 }
 
+// Tìm kiếm cơ sở y tế
 async function search(queryParams) {
   try {
     const {
@@ -69,7 +75,7 @@ async function search(queryParams) {
     let whereConditions = buildSearchConditions({ q, status }, fieldsToSearch);
 
 
-        // DEBUG: Thử tìm không có điều kiện trước
+    // DEBUG: Thử tìm không có điều kiện trước
     try {
       const testResult = await MedicalFacility.findAll({
         limit: 1
@@ -78,7 +84,7 @@ async function search(queryParams) {
       console.error('Test findAll failed:', testError);
       throw testError;
     }
-    
+
     // Thêm bộ lọc
     whereConditions = addFilters(whereConditions, {
       type_id,
@@ -122,7 +128,7 @@ async function search(queryParams) {
   }
 }
 
-// Tìm medical facilities gần nhất
+// Tìm cơ sở y tế gần nhất
 async function findNearby(queryParams) {
   try {
     const {
@@ -177,7 +183,7 @@ async function findNearby(queryParams) {
   }
 }
 
-// Tìm kiếm nâng cao (POST method)
+// Tìm kiếm cơ sở y tế nâng cao (POST method)
 async function advancedSearch(filters) {
   try {
     const {

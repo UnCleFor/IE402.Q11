@@ -1,6 +1,7 @@
 const locationService = require("../services/locations.service");
 
 module.exports = {
+  // Tạo mới location
   async create(req, res) {
     try {
       const newLocation = await locationService.createLocation(req.body);
@@ -10,6 +11,7 @@ module.exports = {
     }
   },
 
+  // Lấy tất cả locations
   async findAll(req, res) {
     try {
       const locations = await locationService.getAllLocations();
@@ -19,6 +21,7 @@ module.exports = {
     }
   },
 
+  // Lấy location theo ID
   async findOne(req, res) {
     try {
       const { id } = req.params;
@@ -33,6 +36,7 @@ module.exports = {
     }
   },
 
+  // Cập nhật location theo ID
   async update(req, res) {
     try {
       const { id } = req.params;
@@ -47,6 +51,7 @@ module.exports = {
     }
   },
 
+  // Xóa location theo ID
   async delete(req, res) {
     try {
       const { id } = req.params;

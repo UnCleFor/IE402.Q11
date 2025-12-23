@@ -10,15 +10,15 @@ const UsersList = ({ onAddUser }) => {
   const [error, setError] = useState('');
   const [currentUser, setCurrentUser] = useState({ user_id: null }); // Thêm state cho user hiện tại
 
-  // Fetch users and current user info
+  // Lấy danh sách người dùng khi component mount
   useEffect(() => {
     fetchUsers();
     getCurrentUser();
   }, []);
 
+  // Lấy thông tin user hiện tại
   const getCurrentUser = async () => {
     try {
-      // Giả sử bạn có API để lấy thông tin user hiện tại
       const user = await authService.getCurrentUser();
       setCurrentUser(user);
     } catch (error) {
@@ -26,15 +26,12 @@ const UsersList = ({ onAddUser }) => {
     }
   };
 
+  // Hàm tải danh sách người dùng từ API
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
       setError('');
-
-      // Call actual API from authService
       const response = await authService.getAllUsers();
-
-      // Transform API response to match component structure
       const formattedUsers = response.map(user => ({
         user_id: user.id || user.user_id,
         user_name: user.user_name || user.username || user.email,
@@ -52,6 +49,7 @@ const UsersList = ({ onAddUser }) => {
     }
   };
 
+  // Lọc người dùng dựa trên tab và từ khóa tìm kiếm
   const filteredUsers = users.filter(user => {
     const matchesSearch =
       (user.user_name && user.user_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -65,12 +63,12 @@ const UsersList = ({ onAddUser }) => {
     return matchesSearch && matchesTab;
   });
 
+  // Hàm hiển thị badge vai trò
   const getRoleBadge = (role) => {
     const roleConfig = {
       admin: { label: 'Quản trị viên', class: 'danger', icon: 'bi-shield-check' },
       user: { label: 'Người dùng', class: 'primary', icon: 'bi-person' },
     };
-
     const config = roleConfig[role] || {
       label: role || 'Người dùng',
       class: 'secondary',
@@ -85,6 +83,7 @@ const UsersList = ({ onAddUser }) => {
     );
   };
 
+  // Hàm định dạng ngày tháng
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
 
@@ -101,20 +100,17 @@ const UsersList = ({ onAddUser }) => {
     }
   };
 
+  // Hàm xử lý xóa người dùng
   const handleDeleteUser = async (userId, userName) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa người dùng "${userName}"?`)) {
       try {
         setIsLoading(true);
-
-        // Gọi API xóa thật sự
         const result = await authService.deleteUser(userId);
 
         if (result && result.success) {
-          // Chỉ xóa khỏi state nếu API thành công
           setUsers(prevUsers => prevUsers.filter(user => user.user_id !== userId));
           alert((result.message || 'Đã xóa người dùng thành công!'));
         } else {
-          // Hiển thị lỗi từ API
           alert((result?.message || 'Không thể xóa người dùng. Vui lòng thử lại.'));
         }
       } catch (error) {
@@ -126,29 +122,23 @@ const UsersList = ({ onAddUser }) => {
     }
   };
 
+  // Hàm xử lý thay đổi vai trò người dùng
   const handleRoleChange = async (userId, newRole) => {
-    // Kiểm tra nếu đang thay đổi role của chính mình
     const isCurrent = isCurrentUser(userId);
-
     if (isCurrent) {
       alert("Bạn không thể thay đổi vai trò của chính mình!");
       return;
     }
-
     const currentUserRole = users.find(user => user.user_id === userId)?.role;
     if (currentUserRole === newRole) return;
-
     const roleName = newRole === 'admin' ? 'Quản trị viên' : 'Người dùng';
     const currentRoleName = currentUserRole === 'admin' ? 'Quản trị viên' : 'Người dùng';
-
     if (!window.confirm(`Thay đổi vai trò từ "${currentRoleName}" sang "${roleName}"?`)) {
       return;
     }
-
     try {
       setIsLoading(true);
       const result = await authService.updateUserRole(userId, { role: newRole });
-
       if (result?.success) {
         setUsers(prevUsers =>
           prevUsers.map(user =>
@@ -166,10 +156,12 @@ const UsersList = ({ onAddUser }) => {
     }
   };
 
+  // Kiểm tra xem userId có phải là user hiện tại không
   const isCurrentUser = (userId) => {
     return String(currentUser.user_id) === String(userId);
   };
 
+  // Thống kê nhanh
   const stats = {
     total: users.length,
     admin: users.filter(u => u.role === 'admin').length,

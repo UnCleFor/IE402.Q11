@@ -9,6 +9,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     type: '',
     address: '',
     phone: '',
+    status: '',
     province: '',
     services: [],
   };
@@ -68,6 +69,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
         type: initialData.type_id || '',
         address: initialData.address || '',
         phone: initialData.phone || '',
+        status: initialData.status || '',
         province: initialData.province_id || '',
         // SỬA: Xử lý location an toàn
         location: initialData.facility_point_id || initialData.location || null,
@@ -97,6 +99,12 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
     { value: 'Phòng khám', label: 'Phòng khám', icon: 'bi bi-plus-circle' },
     { value: 'Trung tâm y tế', label: 'Trung tâm y tế', icon: 'bi bi-building' },
   ];
+  const statusMap = [
+    { value: 'active', label: 'Hoạt động', icon: 'bi bi-hospital' },
+    { value: 'pending', label: 'Chờ duyệt', icon: 'bi bi-plus-circle' },
+    { value: 'inactive', label: 'Ngưng hoạt động', icon: 'bi bi-building' },
+  ];
+  
   const [provinces, setProvinces] = useState([]);
 
   useEffect(() => {
@@ -437,7 +445,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     placeholder="VD: 024 3869 3731"
-                    required={formData.type !== 'pharmacy'}
+                    required
                   />
                 </div>
               </div>
@@ -445,7 +453,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                 <div className="form-group">
                   <label>Trạng thái hoạt động</label>
                   <select
-                    className="form-control mt-3"
+                    className="form-control"
                     value={formData.status}
                     onChange={(e) => handleInputChange('status', e.target.value)}
                     required
@@ -546,7 +554,7 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
                   {mode === 'edit' && (
                     <div className="summary-item">
                       <label>Trạng thái hoạt động:</label>
-                      <span>{formData.status}</span>
+                      <span>{statusMap.find(s => s.value === formData.status)?.label}</span>
                     </div>
                   )}
                   <div className="summary-item">

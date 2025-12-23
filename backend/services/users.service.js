@@ -7,10 +7,12 @@ dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Tạo người dùng mới
 async function createUser(data) {
   return await User.create(data);
 }
 
+// Lấy tất cả người dùng
 async function getAllUsers() {
   return await User.findAll({
     attributes: {
@@ -19,6 +21,7 @@ async function getAllUsers() {
   });
 }
 
+// Tìm người dùng theo user_id, email hoặc user_name
 async function findUser({
   user_id,
   email,
@@ -38,6 +41,7 @@ async function findUser({
   });
 }
 
+// Cập nhật người dùng theo user_id
 async function updateUser(user_id, data) {
   const user = await User.findByPk(user_id);
   if (!user) return null;
@@ -45,6 +49,7 @@ async function updateUser(user_id, data) {
   return await user.update(data);
 }
 
+// Xóa người dùng theo user_id
 async function deleteUser(user_id) {
   const user = await User.findByPk(user_id);
   if (!user) return null;
@@ -53,6 +58,7 @@ async function deleteUser(user_id) {
   return user;
 }
 
+// Đăng nhập người dùng
 async function loginUser(email, password) {
   // Tìm user theo email
   const user = await User.findOne({
@@ -93,6 +99,7 @@ async function loginUser(email, password) {
   };
 }
 
+// Đăng ký người dùng
 async function registerUser( user_name, email, password ) {
   try {    
     // Kiểm tra username tồn tại

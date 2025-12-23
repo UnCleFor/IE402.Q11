@@ -8,7 +8,7 @@ const {
   v4: uuidv4
 } = require("uuid");
 
-class OutbreakArea extends Model {}
+class OutbreakArea extends Model { }
 
 OutbreakArea.init({
   outbreak_id: {

@@ -22,7 +22,7 @@ class User extends Model {
 User.init({
   user_id: {
     type: DataTypes.STRING,
-    defaultValue: () => uuidv4(), // UUID tự tạo
+    defaultValue: () => uuidv4(),
     primaryKey: true,
   },
   user_name: {

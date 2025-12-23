@@ -207,7 +207,7 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
   // Hàm lọc Facilities
   const filteredFacilities = useMemo(() => {
     return facilities.filter(facility => {
-      // Lọc theo loại hình cơ sở y tế
+      // Lọc theo trạng thái cơ sở y tế
       if (activeTab !== 'all' && facility.status !== activeTab) {
         return false;
       }
@@ -289,7 +289,6 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
     const config = statusConfig[status] || { label: status || 'Không rõ', class: 'secondary' };
     return <span className={`badge bg-${config.class}`}>{config.label}</span>;
   };
-
 
   // Thống kê nhanh
   const stats = {

@@ -1,33 +1,35 @@
 const pharmacyService = require("../services/pharmacies.service");
 
 module.exports = {
-  async create(req, res) { console.log("Body nhận được:", req.body);
-      try {
-        const body = req.body;
-        const payload = {
-        pharmacy_name: body.pharmacy_name, 
+  // Tạo mới nhà thuốc
+  async create(req, res) {
+    try {
+      const body = req.body;
+      const payload = {
+        pharmacy_name: body.pharmacy_name,
         //type_id: body.type_id,
         address: body.address,
-        //phone: body.phone,
+        status: body.status,
         province_id: body.province_id,
         //services: (body.services || []).join(', '),
         pharmacy_point_id: body.pharmacy_point_id,
         creator_id: req.user.user_id         // từ decoded token
       };
-  
-  
-        const pharmacy = await pharmacyService.createPharmacy(payload);
-        res.status(201).json({
-          message: "Tạo nhà thuốc thành công",
-          pharmacy
-        });
-      } catch (err) {
-        res.status(500).json({
-          error: err.message
-        });
-      }
-    },
 
+
+      const pharmacy = await pharmacyService.createPharmacy(payload);
+      res.status(201).json({
+        message: "Tạo nhà thuốc thành công",
+        pharmacy
+      });
+    } catch (err) {
+      res.status(500).json({
+        error: err.message
+      });
+    }
+  },
+
+  // Lấy tất cả nhà thuốc
   async findAll(req, res) {
     try {
       const pharmacies = await pharmacyService.getAllPharmacies();
@@ -37,6 +39,7 @@ module.exports = {
     }
   },
 
+  // Lấy nhà thuốc theo ID
   async findOne(req, res) {
     try {
       const { id } = req.params;
@@ -48,6 +51,7 @@ module.exports = {
     }
   },
 
+  // Cập nhật nhà thuốc theo ID
   async update(req, res) {
     try {
       const { id } = req.params;
@@ -59,6 +63,7 @@ module.exports = {
     }
   },
 
+  // Xóa nhà thuốc theo ID
   async delete(req, res) {
     try {
       const { id } = req.params;
@@ -70,11 +75,11 @@ module.exports = {
     }
   },
 
-  //Tìm kiếm pharmacies
+  // Tìm kiếm pharmacies nâng cao (GET)
   async search(req, res) {
-    try {      
+    try {
       const results = await pharmacyService.search(req.query);
-      
+
       res.json({
         success: true,
         count: results.length,
@@ -83,51 +88,51 @@ module.exports = {
       });
     } catch (err) {
       console.error('❌ Pharmacies search error:', err);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        error: err.message 
+        error: err.message
       });
     }
   },
 
-  //Tìm pharmacies gần nhất
+  // Tìm pharmacies gần nhất
   async findNearby(req, res) {
-    try {      
+    try {
       const { lat, lng } = req.query;
-      
+
       if (!lat || !lng) {
         return res.status(400).json({
           success: false,
           error: 'Thiếu tham số bắt buộc: lat và lng'
         });
       }
-      
+
       const results = await pharmacyService.findNearby(req.query);
-      
+
       res.json({
         success: true,
         count: results.length,
-        current_location: { 
-          lat: parseFloat(lat), 
-          lng: parseFloat(lng) 
+        current_location: {
+          lat: parseFloat(lat),
+          lng: parseFloat(lng)
         },
         search_radius: req.query.radius || 5000,
         data: results
       });
     } catch (err) {
       console.error('❌ Pharmacies nearby error:', err);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        error: err.message 
+        error: err.message
       });
     }
   },
 
   //Tìm kiếm nâng cao (POST)
   async advancedSearch(req, res) {
-    try {      
+    try {
       const results = await pharmacyService.advancedSearch(req.body);
-      
+
       res.json({
         success: true,
         count: results.length,
@@ -136,9 +141,9 @@ module.exports = {
       });
     } catch (err) {
       console.error('❌ Pharmacies advanced search error:', err);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        error: err.message 
+        error: err.message
       });
     }
   },
@@ -148,23 +153,23 @@ module.exports = {
     try {
       const { id } = req.params;
       const result = await pharmacyService.getByIdWithLocation(id);
-      
+
       if (!result) {
         return res.status(404).json({
           success: false,
           error: 'Pharmacy not found'
         });
       }
-      
+
       res.json({
         success: true,
         data: result
       });
     } catch (err) {
       console.error('❌ Get pharmacy with location error:', err);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        error: err.message 
+        error: err.message
       });
     }
   }

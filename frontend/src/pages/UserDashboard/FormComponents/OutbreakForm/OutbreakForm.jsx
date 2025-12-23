@@ -19,6 +19,7 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
     }
   }, []);
 
+  // State quản lý form
   const [formData, setFormData] = useState(() => {
     const defaultData = {
       outbreak_name: '',
@@ -27,19 +28,13 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
       severity_level: 'medium',
       start_date: new Date().toISOString().split('T')[0],
       end_date: '',
-      description: '',
       area_geom: null,
       creator_id: '',
       province_id: '',
       province_name: '',
     };
 
-    // Nếu có initialData, merge với defaultData
-
     if (initialData) {
-      console.log('initialData', initialData);
-      console.log('defaultData', defaultData);
-      console.log('merger', { ...defaultData, ...initialData })
       return { ...defaultData, ...initialData };
     }
     return defaultData;
@@ -60,7 +55,7 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
     }
   }, [user]);
 
-  // Disease types theo API
+  // Các loại bệnh dịch
   const diseaseTypes = [
     { value: 'DENGUE', label: 'Sốt xuất huyết', color: '#e74c3c' },
     { value: 'INFLUENZA', label: 'Cúm', color: '#3498db' },
@@ -70,20 +65,20 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
     { value: 'OTHER', label: 'Khác', color: '#95a5a6' }
   ];
 
-  const [provinces, setProvinces] = useState([]); // [{id, name}]
-  const [provinceMap, setProvinceMap] = useState({}); // Map để tra cứu nhanh
+  const [provinces, setProvinces] = useState([]);
+  const [provinceMap, setProvinceMap] = useState({});
+
+  // Load danh sách tỉnh/thành phố khi component mount
   useEffect(() => {
     const loadProvinces = async () => {
       try {
         const response = await provinceService.getAllProvinces();
         if (Array.isArray(response)) {
-          // Lưu mảng đầy đủ
           setProvinces(response.map(p => ({
             id: p.province_id,
             name: p.province_name
           })));
 
-          // Tạo map để tra cứu nhanh
           const nameToIdMap = {};
           const idToNameMap = {};
 
@@ -104,18 +99,19 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
 
     loadProvinces();
   }, []);
-  
+
+  // Chuyển tên tỉnh/thành phố sang ID
   const provinceNameToId = (name) => {
     if (!name || !provinceMap.nameToId) return null;
     return provinceMap.nameToId[name] || null;
   };
+
+  // Xử lý thay đổi input
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-
-    // Clear error when user starts typing
     if (formErrors[field]) {
       setFormErrors(prev => ({
         ...prev,
@@ -124,9 +120,8 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
     }
   };
 
+  // Xử lý hoàn thành vẽ polygon
   const handlePolygonComplete = (polygon) => {
-    console.log('Polygon received:', polygon);
-
     if (!polygon || polygon.length < 3) {
       setFormErrors(prev => ({
         ...prev,
@@ -135,8 +130,6 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
       setPolygonData(null);
       return;
     }
-
-    // Tạo area_geom theo format của API
     const area_geom = {
       crs: {
         type: "name",
@@ -145,30 +138,26 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
         }
       },
       type: "Polygon",
-      coordinates: [polygon.map(point => [point.lng, point.lat])] // Chuyển đổi [lat, lng] -> [lng, lat]
+      coordinates: [polygon.map(point => [point.lng, point.lat])]
     };
 
-    console.log('Generated area_geom:', area_geom);
-
-    // Lưu cả polygon data và area_geom
     setPolygonData({
       rawPolygon: polygon,
       area_geom: area_geom
     });
 
-    // Cập nhật formData
     setFormData(prev => ({
       ...prev,
       area_geom: area_geom
     }));
 
-    // Clear error
     setFormErrors(prev => ({
       ...prev,
       area_geom: ''
     }));
   };
 
+  // Validation cho bước 1
   const validateStep1 = () => {
     const errors = {};
 
@@ -211,9 +200,9 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
     return errors;
   };
 
+  // Validation cho bước 2
   const validateStep2 = () => {
     const errors = {};
-
     if (!formData.area_geom) {
       errors.area_geom = 'Vui lòng khoanh vùng dịch trên bản đồ';
     } else if (!formData.area_geom.coordinates || formData.area_geom.coordinates[0].length < 3) {
@@ -223,21 +212,19 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
     return errors;
   };
 
+  // Chuyển sang bước tiếp theo
   const nextStep = () => {
     let errors = {};
-
     if (currentStep === 1) {
       errors = validateStep1();
     } else if (currentStep === 2) {
       errors = validateStep2();
     }
-
     if (Object.keys(errors).length === 0) {
       setFormErrors({});
       setCurrentStep(prev => prev + 1);
     } else {
       setFormErrors(errors);
-      // Scroll to first error
       const firstErrorField = Object.keys(errors)[0];
       const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
       if (errorElement) {
@@ -247,33 +234,31 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
     }
   };
 
+  // Quay lại bước trước
   const prevStep = () => {
     setCurrentStep(prev => prev - 1);
     setFormErrors({});
   };
 
+  // Lấy polygon hiện tại từ formData
   const getCurrentPolygon = () => {
     if (formData.area_geom && formData.area_geom.coordinates && formData.area_geom.coordinates[0].length > 0) {
-      // Chuyển đổi từ [lng, lat] -> [lat, lng] cho PolygonDrawer
       return formData.area_geom.coordinates[0].map(coord => [
-        coord[1], // lat
-        coord[0]  // lng
+        coord[1],
+        coord[0]
       ]);
     }
     return null;
   };
 
+  // Xử lý submit form
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validate all steps
     const errors1 = validateStep1();
     const errors2 = validateStep2();
     const allErrors = { ...errors1, ...errors2 };
-
     if (Object.keys(allErrors).length > 0) {
       setFormErrors(allErrors);
-      // Quay lại step có lỗi
       if (Object.keys(errors2).length > 0) {
         setCurrentStep(2);
       } else if (Object.keys(errors1).length > 0) {
@@ -281,14 +266,10 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
       }
       return;
     }
-
-    // Kiểm tra creator_id
     if (!formData.creator_id) {
       alert('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
       return;
     }
-
-    // Chuẩn bị dữ liệu theo API format
     const submitData = {
       outbreak_name: formData.outbreak_name.trim(),
       disease_id: formData.disease_id,
@@ -296,20 +277,16 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
       severity_level: formData.severity_level,
       start_date: formData.start_date,
       end_date: formData.end_date || null,
-      description: formData.description.trim() || null,
       area_geom: formData.area_geom,
       creator_id: formData.creator_id,
       province_id: formData.province_id,
     };
-
-    console.log('Submitting data:', submitData);
     onSubmit(submitData);
   };
 
-  // Reset polygon data khi vào step 2
+  // Khởi tạo polygon khi chuyển sang bước 2 nếu có dữ liệu ban đầu
   useEffect(() => {
     if (currentStep === 2) {
-      // Khởi tạo lại polygon data nếu đã có
       if (formData.area_geom) {
         setPolygonData({
           area_geom: formData.area_geom,
@@ -500,22 +477,6 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
               </div>
             </div>
 
-            <div className="form-group mt-3">
-              <label>Mô tả tình hình dịch</label>
-              <textarea
-                name="description"
-                className="form-control"
-                rows="4"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Mô tả chi tiết về tình hình dịch, diễn biến, đặc điểm..."
-                maxLength="1000"
-              />
-              <small className="form-text text-muted">
-                Tối đa 1000 ký tự
-              </small>
-            </div>
-
             <div className="form-actions mt-4">
               <button type="button" className="btn btn-primary" onClick={nextStep}>
                 Tiếp theo <i className="bi bi-arrow-right ms-1"></i>
@@ -644,15 +605,6 @@ const OutbreakForm = ({ onSubmit, initialData, mode = 'create', isSubmitting = f
                     <div className="confirmation-label">Ngày kết thúc:</div>
                     <div className="confirmation-value">
                       {new Date(formData.end_date).toLocaleDateString('vi-VN')}
-                    </div>
-                  </div>
-                )}
-
-                {formData.description && (
-                  <div className="confirmation-item full-width">
-                    <div className="confirmation-label">Mô tả:</div>
-                    <div className="confirmation-value description-text">
-                      {formData.description}
                     </div>
                   </div>
                 )}

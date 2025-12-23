@@ -1,4 +1,3 @@
-/* PolygonDrawer.css */
 .polygon-drawer-container {
   display: flex;
   flex-direction: column;
@@ -266,20 +265,18 @@
   overflow: hidden;
   margin-bottom: 15px;
   position: relative;
-  min-height: 400px; /* Quan trọng: đặt min-height */
+  min-height: 400px;
 }
 
-/* Đảm bảo bản đồ có chiều cao đầy đủ */
 .map-container .polygon-drawer-container {
   height: 100% !important;
   min-height: 400px;
 }
 
 .map-container .drawer-map-container {
-  height: calc(100% - 150px) !important; /* Trừ đi chiều cao của controls */
+  height: calc(100% - 150px) !important; 
 }
 
-/* Đảm bảo Leaflet map có chiều cao */
 .map-container .leaflet-container {
   height: 100% !important;
   min-height: 300px;

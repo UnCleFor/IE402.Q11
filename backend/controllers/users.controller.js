@@ -1,6 +1,7 @@
 const userService = require("../services/users.service");
 
 module.exports = {
+  // Tạo mới user
   async create(req, res) {
     try {
       const {
@@ -24,6 +25,7 @@ module.exports = {
     }
   },
 
+  // Lấy tất cả users
   async findAll(req, res) {
     try {
       const users = await userService.getAllUsers();
@@ -35,6 +37,8 @@ module.exports = {
     }
   },
 
+
+  // Tìm user theo user_id, email hoặc user_name
   async findUser(req, res) {
     try {
       const {
@@ -68,6 +72,7 @@ module.exports = {
 
   },
 
+  // Cập nhật user theo user_id
   async update(req, res) {
     try {
       const {
@@ -98,6 +103,7 @@ module.exports = {
     }
   },
 
+  // Xóa user theo user_id
   async delete(req, res) {
     try {
       const {
@@ -119,6 +125,7 @@ module.exports = {
     }
   },
 
+  // Đăng nhập
   async login(req, res) {
     try {
       const {
@@ -152,47 +159,48 @@ module.exports = {
     }
   },
 
-async register(req, res) {
-  try {
-    const { user_name, email, password } = req.body;
-    
-    // Kiểm tra basic validation
-    if (!user_name || !email || !password) {
-      return res.status(400).json({ 
-        success: false,
-        message: "User name, Email and Password are required" 
-      });
-    }
+  // Đăng ký
+  async register(req, res) {
+    try {
+      const { user_name, email, password } = req.body;
 
-    // Gọi service
-    const result = await userService.registerUser( user_name, email, password );
-    
-    if (result.success) {
-      // Thành công
-      return res.status(201).json({
-        success: true,
-        message: "Register successfully",
-        user: result.user
+      // Kiểm tra basic validation
+      if (!user_name || !email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "User name, Email and Password are required"
+        });
+      }
+
+      // Gọi service
+      const result = await userService.registerUser(user_name, email, password);
+
+      if (result.success) {
+        // Thành công
+        return res.status(201).json({
+          success: true,
+          message: "Register successfully",
+          user: result.user
+        });
+      } else {
+        // Lỗi từ service
+        return res.status(400).json({
+          success: false,
+          message: result.message
+        });
+      }
+
+    } catch (err) {
+      console.error('Register controller error:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
       });
-    } else {
-      // Lỗi từ service
-      return res.status(400).json({
+
+      return res.status(500).json({
         success: false,
-        message: result.message
+        message: "Internal server error. Please try again later."
       });
     }
-    
-  } catch (err) {
-    console.error('Register controller error:', {
-      message: err.message,
-      stack: err.stack,
-      name: err.name
-    });
-    
-    return res.status(500).json({ 
-      success: false,
-      message: "Internal server error. Please try again later."
-    });
-  }   
-}
+  }
 };

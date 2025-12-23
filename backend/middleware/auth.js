@@ -9,10 +9,9 @@ function authMiddleware(req, res, next) {
   if (!token) return res.status(401).json({ message: "Invalid token format" });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // <- đây là decodedToken
-    // decoded có thể chứa { user_id, email, role, ... }
-    req.user = decoded; // lưu vào req để route dùng
-    next();
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);// Giải mã token
+    req.user = decoded; // Gắn thông tin user vào req để các middleware/controller sau có thể sử dụng
+    next(); //
   } catch (err) {
     console.error("JWT verify error:", err);
     return res.status(403).json({ message: "Invalid token" });

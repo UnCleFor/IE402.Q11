@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './FacilityMap.css';
 
-// Fix cho icon marker trong React-Leaflet
+// Cấu hình icon mặc định của Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -12,29 +12,28 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// Component con để điều khiển map
 const MapController = ({ facilityToZoom, facilityAreas }) => {
   const map = useMap();
 
+  // Hiệu ứng zoom tới cơ sở y tế khi facilityToZoom thay đổi
   useEffect(() => {
      if (!facilityToZoom || !facilityAreas.length) return;
-
     const facility = facilityAreas.find(f => f.id === facilityToZoom);
     if (!facility || !facility.location) return;
-
     const { lat, lng } = facility.location;
 
     // Zoom tới điểm cơ sở y tế
     map.setView(facility.location, 17, { animate: true });
 
-    // Tạo marker
+    // Thêm marker tạm thời để mở popup
     const marker = L.marker(facility.location).addTo(map);
 
-    // Format services
+    // Tạo nội dung popup
     const servicesText = Array.isArray(facility.services)
       ? facility.services.join(", ")
       : facility.services || "Chưa cập nhật";
 
+    // Gắn popup vào marker và mở nó
     marker.bindPopup(`
       <div style="min-width: 260px; color: #000">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px">
@@ -60,7 +59,7 @@ const MapController = ({ facilityToZoom, facilityAreas }) => {
   return null;
 };
 
-// Helper functions
+// Hàm lấy text trạng thái từ status code
 const getStatusText = (status) => {
   switch(status) {
     case 'active': return 'Hoạt động';
@@ -70,8 +69,9 @@ const getStatusText = (status) => {
   }
 };
 
+// Component bản đồ cơ sở y tế
 const FacilityMap = ({ 
-  facilities = [], // QUAN TRỌNG: Nhận facilitys từ props thay vì tự fetch
+  facilities = [], 
   onFacilityClick, 
   selectedFacilityId,
   showLoading = false 
@@ -103,30 +103,25 @@ const FacilityMap = ({
   const getColorByStatus = useCallback((status) => {
     switch(status) {
       case 'active': return '#00ff00';
-      case 'pending': return '#ffff00';
+      case 'pending': return 'fde614ff';
       case 'inactive': return '#ff0000';
       default: return '#cccccc';
     }
   }, []);
 
-  // lấy location cho mỗi facility
   const [facilitiesWithLocation, setFacilitiesWithLocation] = useState([]);
 
+  // Hiệu ứng để load thông tin location cho mỗi cơ sở y tế
   useEffect(() => {
   async function enrichFacilities() {
     if (!facilities || facilities.length === 0) return;
-
     const enriched = await Promise.all(
       facilities.map(async (f) => {
         if (!f.raw.facility_point_id) return null;
-
         try {
            const res = await fetch(
             `http://localhost:3001/api/locations/${f.raw.facility_point_id}`
           );
-
-          //if (!res.ok) return null;
-
           const location = await res.json();
           return {
             ...f,
@@ -138,19 +133,15 @@ const FacilityMap = ({
         }
       })
     );
-
     setFacilitiesWithLocation(enriched.filter(Boolean));
   }
-
   enrichFacilities();
 }, [facilities]);
 
+  // Hàm xử lý và chuyển đổi dữ liệu cơ sở y tế cho bản đồ
   const processFacilityData = useCallback((facility) => {
     if (!facility.location || !facility.location.coordinates) return null;
-
-    // GeoJSON POINT: [lng, lat]
     const [lng, lat] = facility.location.coordinates.coordinates;
-
     return {
       id: facility.id,
       name: facility.name,
@@ -168,13 +159,12 @@ const FacilityMap = ({
     };
   }, [getColorByStatus, getFacilityIcon]);
 
-  // Process facilities data từ props
   const processedFacilities = useMemo(() => {
     if (!facilitiesWithLocation.length) return [];
     return facilitiesWithLocation.map(processFacilityData).filter(Boolean);
   }, [facilitiesWithLocation, processFacilityData]);
 
-  // Theo dõi sự thay đổi của selectedFacilityId
+  // Hiệu ứng zoom khi selectedFacilityId thay đổi
   useEffect(() => {
     if (selectedFacilityId) {
       isZoomingRef.current = true;
@@ -187,7 +177,6 @@ const FacilityMap = ({
   // Hàm xử lý khi click vào cơ sở y tế
   const handleFacilityClick = useCallback((facility) => {
       onFacilityClick?.(facility);
-    
       if (mapRef.current && facility.location) {
         mapRef.current.setView(facility.location, 17, { animate: true });
       }
@@ -217,12 +206,13 @@ const FacilityMap = ({
         <div style={{ marginBottom: '10px' }}>
           <div><strong>Điện thoại</strong> {facility.phone}</div>
           <div><strong>Dịch vụ:</strong> {facility.services.join(", ")}</div>
+          <div><strong>Địa chỉ:</strong> {facility.address}</div>
         </div>
       </div>
     );
   };
-
-  // Empty state khi không có facilities
+  
+  // Hiển thị trạng thái không có dữ liệu
   if (!showLoading && (!facilities || facilities.length === 0)) {
     return (
       <div className="facility-map-container">

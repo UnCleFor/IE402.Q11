@@ -8,7 +8,7 @@ const {
     v4: uuidv4
 } = require("uuid");
 
-class Province extends Model {}
+class Province extends Model { }
 
 Province.init({
     province_id: {

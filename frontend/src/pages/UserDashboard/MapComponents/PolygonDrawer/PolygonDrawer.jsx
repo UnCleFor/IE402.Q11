@@ -4,7 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './PolygonDrawer.css';
 
-// Fix cho icon marker trong React-Leaflet
+// Cấu hình icon mặc định của Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -12,14 +12,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// Component vẽ polygon với forwardRef
+// Component con để vẽ polygon
 const DrawPolygon = forwardRef(({ onPolygonComplete, isDrawing, onCancelDrawing, existingPolygon }, ref) => {
   const [points, setPoints] = useState(existingPolygon || []);
   const [currentPolygon, setCurrentPolygon] = useState(existingPolygon && existingPolygon.length > 2 ? [...existingPolygon, existingPolygon[0]] : []);
   const markersRef = useRef([]);
   const [shouldComplete, setShouldComplete] = useState(false);
 
-  // Khởi tạo points từ existingPolygon
+  // Khởi tạo điểm nếu có existingPolygon
   useEffect(() => {
     if (existingPolygon && existingPolygon.length > 0) {
       setPoints(existingPolygon);
@@ -29,28 +29,24 @@ const DrawPolygon = forwardRef(({ onPolygonComplete, isDrawing, onCancelDrawing,
     }
   }, [existingPolygon]);
 
-  // Hàm hoàn thành vẽ
+  // Hàm hoàn thành vẽ polygon
   const handleCompleteDrawing = useCallback(() => {
     if (points.length < 3) {
       alert('Cần ít nhất 3 điểm để tạo polygon!');
       return false;
     }
-    
     const completedPolygon = [...points, points[0]];
     onPolygonComplete(completedPolygon);
-    
     setShouldComplete(false);
     clearMarkers();
-    
     return true;
   }, [points, onPolygonComplete]);
 
-  // Xử lý khi shouldComplete thay đổi
+  // Tự động hoàn thành khi shouldComplete thay đổi
   useEffect(() => {
     if (isDrawing && points.length >= 3 && shouldComplete) {
       const success = handleCompleteDrawing();
       if (success) {
-        // Tự động thoát chế độ vẽ sau khi hoàn thành
         if (onCancelDrawing) {
           onCancelDrawing();
         }
@@ -58,15 +54,13 @@ const DrawPolygon = forwardRef(({ onPolygonComplete, isDrawing, onCancelDrawing,
     }
   }, [shouldComplete, points, isDrawing, handleCompleteDrawing, onCancelDrawing]);
 
+  // Xử lý sự kiện bản đồ
   const map = useMapEvents({
     click: (e) => {
       if (!isDrawing) return;
-      
       const { lat, lng } = e.latlng;
       const newPoints = [...points, [lat, lng]];
       setPoints(newPoints);
-      
-      // Tạo polygon tạm thời
       if (newPoints.length > 2) {
         setCurrentPolygon([...newPoints, newPoints[0]]);
       }
@@ -75,48 +69,40 @@ const DrawPolygon = forwardRef(({ onPolygonComplete, isDrawing, onCancelDrawing,
       if (e.originalEvent.key === 'Escape' && isDrawing) {
         handleCancelDrawing();
       }
-      
+
       if (e.originalEvent.key === 'Backspace' && isDrawing && points.length > 0) {
-        // Xóa điểm cuối cùng
         const newPoints = points.slice(0, -1);
         setPoints(newPoints);
-        
-        // Xóa marker cuối cùng
         if (markersRef.current.length > 0) {
           const lastMarker = markersRef.current.pop();
           if (lastMarker && map.hasLayer(lastMarker)) {
             map.removeLayer(lastMarker);
           }
         }
-        
         if (newPoints.length > 2) {
           setCurrentPolygon([...newPoints, newPoints[0]]);
         } else {
           setCurrentPolygon([]);
         }
       }
-
-      // Hoàn thành bằng phím Enter
       if (e.originalEvent.key === 'Enter' && isDrawing && points.length >= 3) {
         setShouldComplete(true);
       }
     }
   });
 
-  // Hàm hủy vẽ
+  // Hàm hủy vẽ polygon
   const handleCancelDrawing = useCallback(() => {
-    // Nếu có polygon cũ, quay lại polygon đó
     if (existingPolygon && existingPolygon.length > 0) {
       setPoints(existingPolygon);
       if (existingPolygon.length > 2) {
         setCurrentPolygon([...existingPolygon, existingPolygon[0]]);
       }
     } else {
-      // Nếu không có polygon cũ, reset hoàn toàn
       setPoints([]);
       setCurrentPolygon([]);
     }
-    
+
     setShouldComplete(false);
     clearMarkers();
   }, [existingPolygon]);
@@ -126,7 +112,6 @@ const DrawPolygon = forwardRef(({ onPolygonComplete, isDrawing, onCancelDrawing,
     const newPoints = [...points];
     newPoints[index] = newPosition;
     setPoints(newPoints);
-    
     if (newPoints.length > 2) {
       setCurrentPolygon([...newPoints, newPoints[0]]);
     }
@@ -138,10 +123,10 @@ const DrawPolygon = forwardRef(({ onPolygonComplete, isDrawing, onCancelDrawing,
       alert('Polygon cần ít nhất 3 điểm!');
       return;
     }
-    
+
     const newPoints = points.filter((_, i) => i !== index);
     setPoints(newPoints);
-    
+
     if (newPoints.length > 2) {
       setCurrentPolygon([...newPoints, newPoints[0]]);
     } else {
@@ -159,7 +144,7 @@ const DrawPolygon = forwardRef(({ onPolygonComplete, isDrawing, onCancelDrawing,
     markersRef.current = [];
   }, [map]);
 
-  // Expose hàm cho component cha
+  // Expose methods qua ref
   useImperativeHandle(ref, () => ({
     completeDrawing: () => {
       setShouldComplete(true);
@@ -182,7 +167,7 @@ const DrawPolygon = forwardRef(({ onPolygonComplete, isDrawing, onCancelDrawing,
     }
   }));
 
-  // Xử lý markers - chỉ tạo markers mới khi points thay đổi
+  // Hiệu ứng tạo markers khi points thay đổi
   useEffect(() => {
     if (!isDrawing) {
       clearMarkers();
@@ -191,37 +176,34 @@ const DrawPolygon = forwardRef(({ onPolygonComplete, isDrawing, onCancelDrawing,
 
     // Tạo markers cho các điểm mới
     const createMarkers = () => {
-      clearMarkers(); // Xóa markers cũ trước khi tạo mới
-      
+      clearMarkers();
+
       points.forEach((point, index) => {
         const marker = L.marker(point).addTo(map);
         marker.bindTooltip(`Điểm ${index + 1}`, { permanent: true, direction: 'top' });
-        
+
         // Thêm sự kiện click để chỉnh sửa điểm
         marker.on('click', (e) => {
           if (!isDrawing) return;
-          
+
           // Hiển thị dialog hoặc cho phép kéo điểm
           const newLatLng = e.latlng;
           editPoint(index, [newLatLng.lat, newLatLng.lng]);
         });
-        
+
         markersRef.current.push(marker);
       });
     };
 
     createMarkers();
-
-    // Cleanup khi component unmount hoặc isDrawing thay đổi
     return () => {
       clearMarkers();
     };
   }, [points, map, isDrawing, clearMarkers, editPoint]);
 
-  // Reset khi isDrawing thay đổi
+  // Hiệu ứng reset khi isDrawing thay đổi
   useEffect(() => {
     if (!isDrawing && (!existingPolygon || existingPolygon.length === 0)) {
-      // Chỉ reset nếu không có polygon cũ
       setPoints([]);
       setCurrentPolygon([]);
       setShouldComplete(false);
@@ -261,11 +243,10 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
   // Khởi tạo polygon nếu có initialPolygon
   useEffect(() => {
     if (initialPolygon) {
-      // initialPolygon đã có điểm đóng hay chưa?
-      const hasClosingPoint = initialPolygon.length > 0 && 
-                            initialPolygon[0][0] === initialPolygon[initialPolygon.length-1][0] &&
-                            initialPolygon[0][1] === initialPolygon[initialPolygon.length-1][1];
-      
+      const hasClosingPoint = initialPolygon.length > 0 &&
+        initialPolygon[0][0] === initialPolygon[initialPolygon.length - 1][0] &&
+        initialPolygon[0][1] === initialPolygon[initialPolygon.length - 1][1];
+
       if (hasClosingPoint) {
         setCurrentPolygon(initialPolygon);
       } else {
@@ -274,26 +255,23 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
     }
   }, [initialPolygon]);
 
+  // Hàm xử lý khi hoàn thành vẽ polygon
   const handlePolygonComplete = useCallback((polygon) => {
-    // Lưu polygon đã vẽ (giữ nguyên điểm đóng)
     setCurrentPolygon(polygon);
-    
-    // Gọi callback với dữ liệu polygon (bao gồm điểm đóng)
     const polygonData = polygon.map(point => ({
       lat: point[0],
       lng: point[1]
     }));
-    
     onPolygonComplete(polygonData);
-    
-    // Tự động thoát chế độ vẽ sau khi hoàn thành
     setIsDrawing(false);
   }, [onPolygonComplete]);
 
+  // Các hàm điều khiển vẽ polygon
   const handleStartDrawing = () => {
     setIsDrawing(true);
   };
 
+  // Hủy vẽ polygon
   const handleCancelDrawing = () => {
     if (drawPolygonRef.current) {
       drawPolygonRef.current.cancelDrawing();
@@ -301,6 +279,7 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
     setIsDrawing(false);
   };
 
+  // Xóa tất cả polygon
   const handleClearAll = () => {
     if (drawPolygonRef.current) {
       drawPolygonRef.current.clearPoints();
@@ -309,17 +288,16 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
     setIsDrawing(false);
   };
 
+  // Chỉnh sửa polygon hiện tại
   const handleEditPolygon = () => {
     if (currentPolygon.length > 0) {
-      // Chuyển sang chế độ chỉnh sửa
       setIsDrawing(true);
     }
   };
 
   // Tính diện tích
   const calculateArea = useCallback((polygon) => {
-    if (polygon.length < 4) return 0; // Ít nhất 3 điểm + 1 điểm đóng
-    
+    if (polygon.length < 4) return 0;
     // Sử dụng công thức Shoelace
     let area = 0;
     for (let i = 0; i < polygon.length - 1; i++) {
@@ -327,21 +305,19 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
       const [x2, y2] = polygon[i + 1];
       area += x1 * y2 - x2 * y1;
     }
-    
+
     return Math.abs(area / 2).toFixed(2);
   }, []);
 
-  // Chuyển đổi tọa độ cho hiển thị (bỏ điểm đóng cuối cùng khi hiển thị)
+  // Chuyển đổi tọa độ cho hiển thị
   const formatCoordinates = useCallback((polygon) => {
     if (polygon.length === 0) return [];
-    
-    // Bỏ điểm đóng cuối cùng nếu có
-    const displayPolygon = polygon.length > 0 && 
-                          polygon[0][0] === polygon[polygon.length-1][0] &&
-                          polygon[0][1] === polygon[polygon.length-1][1] 
-                          ? polygon.slice(0, -1) 
-                          : polygon;
-    
+    const displayPolygon = polygon.length > 0 &&
+      polygon[0][0] === polygon[polygon.length - 1][0] &&
+      polygon[0][1] === polygon[polygon.length - 1][1]
+      ? polygon.slice(0, -1)
+      : polygon;
+
     return displayPolygon.map(point => ({
       lat: point[0].toFixed(6),
       lng: point[1].toFixed(6)
@@ -351,12 +327,11 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
   // Lấy polygon không có điểm đóng để truyền vào DrawPolygon
   const getPolygonWithoutClosingPoint = useCallback(() => {
     if (currentPolygon.length === 0) return [];
-    
-    // Kiểm tra xem có điểm đóng không
-    const hasClosingPoint = currentPolygon.length > 0 && 
-                           currentPolygon[0][0] === currentPolygon[currentPolygon.length-1][0] &&
-                           currentPolygon[0][1] === currentPolygon[currentPolygon.length-1][1];
-    
+
+    const hasClosingPoint = currentPolygon.length > 0 &&
+      currentPolygon[0][0] === currentPolygon[currentPolygon.length - 1][0] &&
+      currentPolygon[0][1] === currentPolygon[currentPolygon.length - 1][1];
+
     if (hasClosingPoint) {
       return currentPolygon.slice(0, -1);
     }
@@ -379,7 +354,7 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
           {!isDrawing ? (
             <>
               {currentPolygon.length === 0 ? (
-                <button 
+                <button
                   className="btn btn-sm btn-primary"
                   onClick={handleStartDrawing}
                 >
@@ -388,15 +363,15 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
                 </button>
               ) : (
                 <>
-                  <button 
+                  <button
                     className="btn btn-sm btn-warning"
                     onClick={handleEditPolygon}
                   >
                     <i className="bi bi-pencil-square me-1"></i>
                     Chỉnh sửa
                   </button>
-                  
-                  <button 
+
+                  <button
                     className="btn btn-sm btn-success"
                     disabled
                   >
@@ -408,15 +383,15 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
             </>
           ) : (
             <>
-              <button 
+              <button
                 className="btn btn-sm btn-secondary"
                 disabled
               >
                 <i className="bi bi-record-circle me-1"></i>
                 Đang vẽ ({getCurrentPointCount()} điểm)
               </button>
-              
-              <button 
+
+              <button
                 className="btn btn-sm btn-danger"
                 onClick={handleCancelDrawing}
               >
@@ -425,8 +400,8 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
               </button>
             </>
           )}
-          
-          <button 
+
+          <button
             className="btn btn-sm btn-outline-danger"
             onClick={handleClearAll}
             disabled={currentPolygon.length === 0}
@@ -453,7 +428,7 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
             <span className="instruction-icon">⎋</span>
             <span>ESC để hủy vẽ</span>
           </div>
-        </div> 
+        </div>
       </div>
 
       {/* Map Container */}
@@ -473,7 +448,7 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
           />
 
           {/* Component vẽ polygon với ref */}
-          <DrawPolygon 
+          <DrawPolygon
             ref={drawPolygonRef}
             onPolygonComplete={handlePolygonComplete}
             isDrawing={isDrawing}
@@ -494,7 +469,6 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
               }}
               eventHandlers={{
                 click: () => {
-                  // Zoom vào polygon khi click
                   if (mapRef.current) {
                     const bounds = L.latLngBounds(currentPolygon);
                     mapRef.current.fitBounds(bounds);
@@ -514,7 +488,7 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
             {currentPolygon.length > 0 ? 'Đã vẽ' : 'Chưa vẽ'}
           </span>
         </div>
-        
+
         {currentPolygon.length === 0 ? (
           <div className="no-polygons">
             <i className="bi bi-map"></i>
@@ -545,7 +519,7 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
                 <span className="detail-value">Polygon đóng</span>
               </div>
             </div>
-            
+
             <div className="coordinates-preview">
               <small className="text-muted">Tọa độ các điểm:</small>
               <div className="coordinates-list">
@@ -566,10 +540,10 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
                 </div>
               </div>
             </div>
-            
+
             <div className="polygon-actions mt-3">
               {!isDrawing ? (
-                <button 
+                <button
                   className="btn btn-sm btn-outline-warning w-100"
                   onClick={handleEditPolygon}
                 >
@@ -579,7 +553,7 @@ const PolygonDrawer = ({ onPolygonComplete, initialPolygon, height = "400px" }) 
               ) : (
                 <div className="alert alert-warning small mb-0">
                   <i className="bi bi-info-circle me-1"></i>
-                  Đang ở chế độ chỉnh sửa. 
+                  Đang ở chế độ chỉnh sửa.
                   <div><small>Click vào markers để di chuyển điểm, nhấn Enter để hoàn thành.</small></div>
                 </div>
               )}

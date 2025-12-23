@@ -1,6 +1,7 @@
 const outbreakService = require("../services/outbreak_areas.service");
 
 module.exports = {
+  // Tạo mới vùng dịch
   async create(req, res) {
     try {
       const newArea = await outbreakService.create(req.body);
@@ -13,6 +14,8 @@ module.exports = {
     }
   },
 
+
+  // Lấy tất cả vùng dịch
   async findAll(req, res) {
     try {
       const list = await outbreakService.findAll();
@@ -25,6 +28,7 @@ module.exports = {
     }
   },
 
+  // Lấy vùng dịch theo ID
   async findOne(req, res) {
     try {
       const { id } = req.params;
@@ -39,6 +43,7 @@ module.exports = {
     }
   },
 
+  // Cập nhật vùng dịch theo ID
   async update(req, res) {
     try {
       const { id } = req.params;
@@ -53,6 +58,7 @@ module.exports = {
     }
   },
 
+  // Xóa vùng dịch theo ID
   async delete(req, res) {
     try {
       const { id } = req.params;

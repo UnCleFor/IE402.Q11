@@ -22,7 +22,6 @@ export default function PharmacyPage() {
         setLoading(false);
       })
       .catch(err => {
-        console.log(err);
         setError("Không thể tải danh sách nhà thuốc. Vui lòng thử lại sau.");
         setLoading(false);
       });

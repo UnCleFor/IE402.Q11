@@ -10,18 +10,22 @@ const {
 } = require("../utils/search.utils");
 
 module.exports = {
+  // Tạo nhà thuốc mới
   async createPharmacy(data) {
     return await Pharmacy.create(data);
   },
 
+  // Lấy tất cả nhà thuốc
   async getAllPharmacies() {
     return await Pharmacy.findAll();
   },
 
+  // Lấy nhà thuốc theo ID
   async getPharmacyById(id) {
     return await Pharmacy.findByPk(id);
   },
 
+  // Cập nhật nhà thuốc theo ID
   async updatePharmacy(id, data) {
     const pharmacy = await Pharmacy.findByPk(id);
     if (!pharmacy) return null;
@@ -29,6 +33,7 @@ module.exports = {
     return pharmacy;
   },
 
+  // Xóa nhà thuốc theo ID
   async deletePharmacy(id) {
     const pharmacy = await Pharmacy.findByPk(id);
     if (!pharmacy) return null;
@@ -48,6 +53,7 @@ module.exports = {
     return true;
   },
 
+  // Tìm kiếm nhà thuốc theo từ khóa và bộ lọc
   async search(queryParams) {
     try {
       const {
@@ -65,7 +71,7 @@ module.exports = {
       // Xây dựng điều kiện tìm kiếm
       const fieldsToSearch = ['pharmacy_name', 'address'];
       let whereConditions = buildSearchConditions({ q, status }, fieldsToSearch);
-      
+
       // Thêm bộ lọc (pharmacy không có type_id và phone trong model của bạn)
       if (province_id) whereConditions.province_id = province_id;
       if (address) whereConditions.address = { [Op.iLike]: `%${address}%` };
@@ -105,7 +111,7 @@ module.exports = {
     }
   },
 
-  // Tìm pharmacies gần nhất
+  // Tìm nhà thuốc gần nhất
   async findNearby(queryParams) {
     try {
       const {
@@ -158,7 +164,7 @@ module.exports = {
     }
   },
 
-  // Tìm kiếm nâng cao (POST method)
+  // Tìm kiếm nhà thuốc nâng cao (POST method)
   async advancedSearch(filters) {
     try {
       const {
@@ -234,11 +240,11 @@ module.exports = {
         if (minDistance !== undefined || maxDistance !== undefined) {
           results = results.filter(item => {
             if (item.distance === null) return false;
-            
+
             const distance = item.distance;
             const passMin = minDistance === undefined || distance >= minDistance;
             const passMax = maxDistance === undefined || distance <= maxDistance;
-            
+
             return passMin && passMax;
           });
         }
@@ -261,7 +267,7 @@ module.exports = {
     }
   },
 
-  // Lấy pharmacy theo ID với location
+  // Lấy nhà thuốc theo ID với location
   async getByIdWithLocation(id) {
     try {
       const pharmacy = await Pharmacy.findByPk(id);

@@ -26,6 +26,7 @@ const ReportForm = ({ onSubmit, initialData, mode = 'create' }) => {
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [selectedOutbreaks, setSelectedOutbreaks] = useState([]);
 
+  // Các loại báo cáo
   const reportTypes = [
     { value: 'daily', label: 'Báo cáo hàng ngày', icon: 'bi bi-calendar-day' },
     { value: 'weekly', label: 'Báo cáo hàng tuần', icon: 'bi bi-calendar-week' },
@@ -42,11 +43,13 @@ const ReportForm = ({ onSubmit, initialData, mode = 'create' }) => {
     { id: 3, name: 'Phòng khám Đa khoa Quốc tế', type: 'clinic' }
   ];
 
+  // Dữ liệu mẫu vùng dịch
   const sampleOutbreaks = [
     { id: 1, name: 'Dịch sốt xuất huyết Ba Đình', disease: 'dengue_fever' },
     { id: 2, name: 'Cúm A H5N1 Gia Lâm', disease: 'influenza' }
   ];
 
+  // Xử lý thay đổi input
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -54,6 +57,7 @@ const ReportForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
+  // Xử lý thay đổi chỉ số
   const handleMetricChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -64,6 +68,7 @@ const ReportForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
+  // Xử lý thay đổi khoảng thời gian
   const handlePeriodChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -74,22 +79,25 @@ const ReportForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
+  // Chọn/Bỏ chọn cơ sở y tế
   const toggleFacility = (facility) => {
-    setSelectedFacilities(prev => 
-      prev.includes(facility.id) 
+    setSelectedFacilities(prev =>
+      prev.includes(facility.id)
         ? prev.filter(id => id !== facility.id)
         : [...prev, facility.id]
     );
   };
 
+  // Chọn/Bỏ chọn vùng dịch
   const toggleOutbreak = (outbreak) => {
-    setSelectedOutbreaks(prev => 
-      prev.includes(outbreak.id) 
+    setSelectedOutbreaks(prev =>
+      prev.includes(outbreak.id)
         ? prev.filter(id => id !== outbreak.id)
         : [...prev, outbreak.id]
     );
   };
 
+  // Xử lý tải lên tệp
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
     setFormData(prev => ({
@@ -102,6 +110,7 @@ const ReportForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
+  // Xóa tệp đính kèm
   const removeAttachment = (index) => {
     setFormData(prev => ({
       ...prev,
@@ -109,6 +118,7 @@ const ReportForm = ({ onSubmit, initialData, mode = 'create' }) => {
     }));
   };
 
+  // Xử lý submit form
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
@@ -118,8 +128,8 @@ const ReportForm = ({ onSubmit, initialData, mode = 'create' }) => {
     });
   };
 
+  // Tạo bản xem trước báo cáo
   const generateReportPreview = () => {
-    // Giả lập tạo preview báo cáo
     return {
       facilities: selectedFacilities.length,
       outbreaks: selectedOutbreaks.length,
@@ -352,7 +362,7 @@ const ReportForm = ({ onSubmit, initialData, mode = 'create' }) => {
               Chọn tệp đính kèm
             </label>
           </div>
-          
+
           {formData.attachments.length > 0 && (
             <div className="attachments-list">
               {formData.attachments.map((file, index) => (

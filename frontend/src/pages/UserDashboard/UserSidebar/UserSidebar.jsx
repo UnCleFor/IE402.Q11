@@ -17,6 +17,7 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
     }
   }, []);
 
+  // Định nghĩa các mục menu
   const menuItems = [
     {
       id: 'dashboard',
@@ -38,9 +39,9 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
     },
     {
       id: 'pharmacies',
-      icon: 'bi bi-capsule',   
+      icon: 'bi bi-capsule',
       label: 'Nhà thuốc',
-      badge: null              
+      badge: null
     },
     {
       id: 'outbreak',
@@ -62,48 +63,29 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
     }
   ];
 
-  const bottomMenuItems = [
-    {
-      id: 'settings',
-      icon: 'bi bi-gear',
-      label: 'Cài đặt'
-    },
-    {
-      id: 'help',
-      icon: 'bi bi-question-circle',
-      label: 'Trợ giúp'
-    }
-  ];
-
+  // Hàm lấy tên hiển thị của user
   const getUserDisplayName = () => {
     if (!user) return 'Người dùng';
-
-    // Ưu tiên hiển thị username, nếu không có thì dùng email
     return user.user_name || user.name || user.email || 'Người dùng';
   };
 
+  // Hàm lấy avatar của user
   const getUserAvatar = () => {
     if (!user) return <i className="bi bi-person-circle"></i>;
-
-    // Nếu user có avatar URL
     if (user.avatar) {
       return <img src={user.avatar} alt={getUserDisplayName()} />;
     }
-
-    // Nếu có tên, hiển thị chữ cái đầu
     if (user.name || user.username) {
       const name = user.name || user.username;
       const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
       return <span className="avatar-initials">{initials.substring(0, 2)}</span>;
     }
-
-    // Mặc định
     return <i className="bi bi-person-circle"></i>;
   };
 
+  // Hàm lấy vai trò của user
   const getUserRole = () => {
     if (!user) return 'Người dùng';
-
     const roleNames = {
       'admin': 'Quản trị viên',
       'super_admin': 'Super Admin',
@@ -117,12 +99,10 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
     return roleNames[user.role] || user.role || 'Người dùng';
   };
 
+  // Xử lý đăng xuất
   const handleLogout = () => {
-    // Xóa token và user info khỏi localStorage
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
-
-    // Chuyển hướng về trang login
     window.location.href = '/login';
   };
 
@@ -155,7 +135,7 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
             {!collapsed && (
               <>
                 <span className="menu-label">{item.label}</span>
-                
+
               </>
             )}
           </button>
@@ -164,20 +144,7 @@ const UserSidebar = ({ activeSection, setActiveSection, collapsed }) => {
 
       {/* Bottom Menu */}
       <div className="sidebar-bottom">
-        {bottomMenuItems.map((item) => (
-          <button
-            key={item.id}
-            className={`menu-item ${activeSection === item.id ? 'active' : ''}`}
-            onClick={() => setActiveSection(item.id)}
-          >
-            <div className="menu-icon">
-              <i className={item.icon}></i>
-            </div>
-            {!collapsed && (
-              <span className="menu-label">{item.label}</span>
-            )}
-          </button>
-        ))}
+        
 
         {/* Logout Button */}
         <button

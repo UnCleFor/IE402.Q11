@@ -9,17 +9,13 @@ const OutbreakPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedOutbreak, setSelectedOutbreak] = useState(null);
-  
-  // Các state cho bộ lọc
   const [severityFilter, setSeverityFilter] = useState('all');
   const [diseaseFilter, setDiseaseFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  
-  // State cho view mode (list/map)
   const [viewMode, setViewMode] = useState('list');
-  
+
   // Danh sách bệnh dịch
   const diseaseTypes = [
     { id: 'DENGUE', name: 'Sốt xuất huyết', color: '#e74c3c' },
@@ -35,58 +31,54 @@ const OutbreakPage = () => {
     fetchOutbreaks();
   }, []);
 
+  // Hàm lấy và xử lý dữ liệu outbreaks
   const fetchOutbreaks = async () => {
-  try {
-    setIsLoading(true);
-    setError(null);
-    
-    const response = await outbreakServices.getAllOutbreaks();
-    if (response && response.data) {
-      // Tạo mảng promises
-      const outbreaksWithProvinces = await Promise.all(
-        response.data.map(async (outbreak) => {
-          const provinceName = await getProvinceName(outbreak.province_id);
-          
-          return {
-            outbreak_id: outbreak.outbreak_id,
-            outbreak_name: outbreak.outbreak_name,
-            disease_id: outbreak.disease_id,
-            disease_name: diseaseTypes.find(d => d.id === outbreak.disease_id)?.name || 'Khác',
-            disease_cases: outbreak.disease_cases,
-            severity_level: outbreak.severity_level,
-            start_date: outbreak.start_date,
-            end_date: outbreak.end_date,
-            area_geom: outbreak.area_geom,
-            creator_id: outbreak.creator_id,
-            createdAt: outbreak.createdAt,
-            updatedAt: outbreak.updatedAt,
-            
-            status: getOutbreakStatus(outbreak.start_date, outbreak.end_date),
-            formatted_start_date: formatDate(outbreak.start_date),
-            formatted_end_date: outbreak.end_date ? formatDate(outbreak.end_date) : null,
-            last_updated: getTimeAgo(outbreak.updatedAt),
-            province_id: outbreak.province_id,
-            province_name: provinceName 
-          };
-        })
-      );
-      
-      console.log('Formatted outbreaks:', outbreaksWithProvinces);
-      setOutbreaks(outbreaksWithProvinces);
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await outbreakServices.getAllOutbreaks();
+      if (response && response.data) {
+        const outbreaksWithProvinces = await Promise.all(
+          response.data.map(async (outbreak) => {
+            const provinceName = await getProvinceName(outbreak.province_id);
+            return {
+              outbreak_id: outbreak.outbreak_id,
+              outbreak_name: outbreak.outbreak_name,
+              disease_id: outbreak.disease_id,
+              disease_name: diseaseTypes.find(d => d.id === outbreak.disease_id)?.name || 'Khác',
+              disease_cases: outbreak.disease_cases,
+              severity_level: outbreak.severity_level,
+              start_date: outbreak.start_date,
+              end_date: outbreak.end_date,
+              area_geom: outbreak.area_geom,
+              creator_id: outbreak.creator_id,
+              createdAt: outbreak.createdAt,
+              updatedAt: outbreak.updatedAt,
+              status: getOutbreakStatus(outbreak.start_date, outbreak.end_date),
+              formatted_start_date: formatDate(outbreak.start_date),
+              formatted_end_date: outbreak.end_date ? formatDate(outbreak.end_date) : null,
+              last_updated: getTimeAgo(outbreak.updatedAt),
+              province_id: outbreak.province_id,
+              province_name: provinceName
+            };
+          })
+        );
+        setOutbreaks(outbreaksWithProvinces);
+      }
+    } catch (error) {
+      console.error('Error fetching outbreaks:', error);
+      setError('Không thể tải danh sách vùng dịch. Vui lòng thử lại sau.');
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching outbreaks:', error);
-    setError('Không thể tải danh sách vùng dịch. Vui lòng thử lại sau.');
-  } finally {
-    setIsLoading(false);
-  }
-};
-  // Lấy tên tỉnh từ outbreak_id
-    const getProvinceName = async (id) => {
+  };
+
+  // Hàm lấy tên tỉnh từ ID
+  const getProvinceName = async (id) => {
     try {
       const res = await provinceService.searchProvinces(id);
       if (Array.isArray(res) && res.length > 0) {
-        const province = res[0]; // Lấy phần tử đầu tiên
+        const province = res[0];
         return province.province_name || 'N/A';
       }
       return null;
@@ -95,18 +87,18 @@ const OutbreakPage = () => {
       return null;
     }
   }
-  // Helper functions
+
+  // Xác định trạng thái outbreak dựa trên ngày bắt đầu và kết thúc
   const getOutbreakStatus = (startDate, endDate) => {
     if (endDate) return 'resolved';
-    
     const start = new Date(startDate);
     const now = new Date();
     const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-    
     if (diffDays > 30) return 'monitoring';
     return 'active';
   };
 
+  // Hàm định dạng ngày tháng
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
@@ -117,6 +109,7 @@ const OutbreakPage = () => {
     }
   };
 
+  // Hàm tính thời gian đã trôi qua từ một ngày nhất định
   const getTimeAgo = (dateString) => {
     if (!dateString) return 'Không xác định';
     try {
@@ -126,7 +119,6 @@ const OutbreakPage = () => {
       const diffMins = Math.floor(diffMs / (1000 * 60));
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      
       if (diffMins < 60) return `${diffMins} phút trước`;
       if (diffHours < 24) return `${diffHours} giờ trước`;
       return `${diffDays} ngày trước`;
@@ -135,25 +127,17 @@ const OutbreakPage = () => {
     }
   };
 
-
-  // Hàm lọc outbreaks - QUAN TRỌNG: dùng cho cả list và map
+  // Lọc outbreaks dựa trên bộ lọc và tìm kiếm
   const filteredOutbreaks = outbreaks.filter(outbreak => {
-    // Lọc theo mức độ nghiêm trọng
     if (severityFilter !== 'all' && outbreak.severity_level !== severityFilter) {
       return false;
     }
-    
-    // Lọc theo loại bệnh
     if (diseaseFilter !== 'all' && outbreak.disease_id !== diseaseFilter) {
       return false;
     }
-    
-    // Lọc theo trạng thái
     if (statusFilter !== 'all' && outbreak.status !== statusFilter) {
       return false;
     }
-    
-    // Lọc theo từ khóa tìm kiếm
     if (searchTerm.trim() !== '') {
       const searchLower = searchTerm.toLowerCase();
       return (
@@ -163,37 +147,31 @@ const OutbreakPage = () => {
         (outbreak.description && outbreak.description.toLowerCase().includes(searchLower))
       );
     }
-    
-    // Lọc theo khoảng thời gian
     if (dateRange.start) {
       const outbreakStart = new Date(outbreak.start_date);
       const filterStart = new Date(dateRange.start);
       if (outbreakStart < filterStart) return false;
     }
-    
     if (dateRange.end) {
       const outbreakStart = new Date(outbreak.start_date);
       const filterEnd = new Date(dateRange.end);
       if (outbreakStart > filterEnd) return false;
     }
-    
     return true;
   });
 
-  // Thêm hàm để highlight outbreak được chọn trên bản đồ
+  // Xử lý khi click vào một outbreak trong danh sách
   const handleOutbreakClick = (outbreakId) => {
     setSelectedOutbreak(outbreakId);
   };
 
-  // Thêm hàm để xử lý khi click trên bản đồ
+  // Xử lý khi click vào một outbreak trên bản đồ
   const handleMapOutbreakClick = (outbreak) => {
     setSelectedOutbreak(outbreak.outbreak_id);
-    // Nếu đang ở chế độ list, cuộn đến card tương ứng
     if (viewMode === 'list') {
       const element = document.getElementById(`outbreak-card-${outbreak.outbreak_id}`);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Thêm hiệu ứng highlight
         element.classList.add('highlighted');
         setTimeout(() => element.classList.remove('highlighted'), 2000);
       }
@@ -208,7 +186,6 @@ const OutbreakPage = () => {
       low: { label: 'Thấp', class: 'success', icon: 'bi-info-circle' }
     };
     const severityConfig = config[severity] || { label: severity, class: 'secondary', icon: 'bi-question-circle' };
-    
     return (
       <span className={`badge bg-${severityConfig.class} severity-badge`}>
         <i className={`bi ${severityConfig.icon} me-1`}></i>
@@ -225,7 +202,6 @@ const OutbreakPage = () => {
       resolved: { label: 'Đã kết thúc', class: 'success' }
     };
     const statusConfig = config[status] || { label: status, class: 'secondary' };
-    
     return <span className={`badge bg-${statusConfig.class}`}>{statusConfig.label}</span>;
   };
 
@@ -250,14 +226,14 @@ const OutbreakPage = () => {
     filteredTotalCases: filteredOutbreaks.reduce((sum, o) => sum + o.disease_cases, 0)
   };
 
-  // Thêm useEffect để đồng bộ selected outbreak khi filter thay đổi
+  // Nếu outbreak được chọn không còn trong danh sách đã lọc, bỏ chọn nó
   useEffect(() => {
-    // Nếu outbreak đang chọn không còn trong filtered list, reset selected
     if (selectedOutbreak && !filteredOutbreaks.find(o => o.outbreak_id === selectedOutbreak)) {
       setSelectedOutbreak(null);
     }
   }, [filteredOutbreaks, selectedOutbreak]);
 
+  // Giao diện khi đang tải dữ liệu
   if (isLoading) {
     return (
       <div className="outbreak-page loading">
@@ -273,6 +249,7 @@ const OutbreakPage = () => {
     );
   }
 
+  // Giao diện khi có lỗi xảy ra
   if (error) {
     return (
       <div className="outbreak-page error">
@@ -291,6 +268,7 @@ const OutbreakPage = () => {
     );
   }
 
+  // Giao diện chính của trang OutbreakPage
   return (
     <div className="outbreak-page">
       {/* Hero Section */}
@@ -302,7 +280,7 @@ const OutbreakPage = () => {
               Cập nhật thông tin mới nhất về các vùng dịch bệnh
             </p>
           </div>
-          
+
           {/* Quick Stats - Hiển thị thống kê theo bộ lọc */}
           <div className="hero-stats">
             <div className="stat-card">
@@ -312,7 +290,7 @@ const OutbreakPage = () => {
               <div className="stat-content">
                 <div className="stat-value">{stats.filteredTotal}</div>
                 <div className="stat-label">
-                  Vùng dịch 
+                  Vùng dịch
                   {stats.filteredTotal !== stats.total && (
                     <span className="stat-sub"> / {stats.total}</span>
                   )}
@@ -502,7 +480,7 @@ const OutbreakPage = () => {
 
         {/* Content based on view mode */}
         {viewMode === 'map' ? (
-          /* Map View - QUAN TRỌNG: truyền filteredOutbreaks thay vì outbreaks */
+          /* Map View */
           <div className="map-view">
             <div className="card">
               <div className="card-body">
@@ -514,13 +492,13 @@ const OutbreakPage = () => {
                   </span>
                 </h5>
                 <div className="outbreak-map-container">
-                  <OutbreakMap 
-                    outbreaks={filteredOutbreaks} // QUAN TRỌNG: Truyền filteredOutbreaks
+                  <OutbreakMap
+                    outbreaks={filteredOutbreaks}
                     onOutbreakClick={handleMapOutbreakClick}
                     selectedOutbreakId={selectedOutbreak}
                   />
                 </div>
-                
+
               </div>
             </div>
           </div>
@@ -536,12 +514,12 @@ const OutbreakPage = () => {
             ) : (
               <div className="row">
                 {filteredOutbreaks.map(outbreak => (
-                  <div 
-                    key={outbreak.outbreak_id} 
+                  <div
+                    key={outbreak.outbreak_id}
                     id={`outbreak-card-${outbreak.outbreak_id}`}
                     className="col-lg-6 mb-4"
                   >
-                    <div 
+                    <div
                       className={`outbreak-card card h-100 ${selectedOutbreak === outbreak.outbreak_id ? 'selected' : ''}`}
                       onClick={() => handleOutbreakClick(outbreak.outbreak_id)}
                     >
@@ -554,9 +532,9 @@ const OutbreakPage = () => {
                           </div>
                         </div>
                         <div className="disease-info mt-2">
-                          <span 
+                          <span
                             className="disease-badge"
-                            style={{ 
+                            style={{
                               backgroundColor: diseaseTypes.find(d => d.id === outbreak.disease_id)?.color || '#95a5a6'
                             }}
                           >
@@ -565,7 +543,7 @@ const OutbreakPage = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="card-body">
                         <div className="outbreak-details">
                           <div className="detail-item">
@@ -591,20 +569,19 @@ const OutbreakPage = () => {
                             <span>Cập nhật: {outbreak.last_updated}</span>
                           </div>
                         </div>
-                        
+
                         {outbreak.description && (
                           <div className="outbreak-description mt-3">
                             <p className="mb-0">{outbreak.description}</p>
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="card-footer">
-                        <button 
+                        <button
                           className="btn btn-sm btn-outline-primary"
                           onClick={(e) => {
                             e.stopPropagation();
-                            // Chuyển sang chế độ bản đồ và chọn outbreak này
                             setSelectedOutbreak(outbreak.outbreak_id);
                             setViewMode('map');
                           }}

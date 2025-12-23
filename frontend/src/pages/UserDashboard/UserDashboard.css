@@ -115,12 +115,12 @@
 
 .tool-card {
   background: white;
-  padding: 0; /* Đổi từ 1.5rem thành 0 để padding ở trong component */
+  padding: 0; 
   border-radius: 15px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid #f1f3f4;
   height: 100%;
-  overflow: hidden; /* Quan trọng: để content không tràn ra ngoài */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -129,13 +129,13 @@
   color: #2c3e50;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  padding: 1.5rem 1.5rem 0.5rem 1.5rem; /* Thêm padding cho title */
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem; 
 }
 
 .tool-card > p {
   color: #6c757d;
   margin-bottom: 1rem;
-  padding: 0 1.5rem; /* Thêm padding cho description */
+  padding: 0 1.5rem;
 }
 
 /* Section Placeholder */

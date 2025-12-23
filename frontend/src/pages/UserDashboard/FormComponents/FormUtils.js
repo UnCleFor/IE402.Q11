@@ -1,4 +1,4 @@
-// File mới: FormUtils.js
+// Hàm để đảm bảo dữ liệu form luôn đầy đủ và có cấu trúc đúng
 export const safeFormData = (initialData, defaultData) => {
   return {
     ...defaultData,
@@ -12,6 +12,7 @@ export const safeFormData = (initialData, defaultData) => {
   };
 };
 
+// Hàm để validate dữ liệu form trước khi submit
 export const validateFormData = (formData) => {
   const errors = {};
   

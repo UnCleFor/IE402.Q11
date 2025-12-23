@@ -19,7 +19,7 @@ module.exports = {
         return await Province.findByPk(id);
     },
 
-    // Tìm kiếm theo province_id / province_name / province_abbr
+    // Tìm kiếm theo province_id, province_name, province_abbr
     async searchProvinces(keyword) {
         return await Province.findAll({
             where: {

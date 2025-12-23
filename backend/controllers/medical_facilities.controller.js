@@ -1,7 +1,8 @@
 const facilityService = require("../services/medical_facilities.service");
 
 module.exports = {
-  async create(req, res) { console.log("Body nhận được:", req.body);
+  // Tạo mới cơ sở y tế
+  async create(req, res) {
     try {
       const body = req.body;
       const payload = {
@@ -12,7 +13,7 @@ module.exports = {
       province_id: body.province_id,
       services: body.services,
       facility_point_id: body.facility_point_id,
-      creator_id: req.user.user_id         // từ decoded token
+      creator_id: req.user.user_id
     };
 
 
@@ -28,6 +29,7 @@ module.exports = {
     }
   },
 
+  // Lấy tất cả cơ sở y tế
   async findAll(req, res) {
     try {
       const facilities = await facilityService.getAllFacilities();
@@ -39,6 +41,7 @@ module.exports = {
     }
   },
 
+  // Lấy cơ sở y tế theo ID
   async findOne(req, res) {
     try {
       const {
@@ -56,6 +59,7 @@ module.exports = {
     }
   },
 
+  // Cập nhật cơ sở y tế theo ID
   async update(req, res) {
     try {
       const {
@@ -73,6 +77,7 @@ module.exports = {
     }
   },
 
+  // Xóa cơ sở y tế theo ID
   async delete(req, res) {
     try {
       const {
@@ -92,7 +97,7 @@ module.exports = {
     }
   },
 
-  // Tìm kiếm cơ sở y tế
+  // Tìm kiếm cơ sở y tế nâng cao
   async search(req, res) {
     try {      
       const results = await facilityService.search(req.query);

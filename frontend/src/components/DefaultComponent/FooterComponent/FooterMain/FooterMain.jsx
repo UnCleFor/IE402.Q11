@@ -39,23 +39,9 @@ const FooterMain = () => {
               links={[
                 { name: 'Trang Chủ', url: '/' },
                 { name: 'Bản Đồ', url: '/map' },
-                { name: 'Bệnh Viện', url: '/hospitals' },
-                { name: 'Vùng Dịch', url: '/outbreak-areas' },
-                { name: 'Tin Tức Y Tế', url: '/news' }
-              ]}
-            />
-          </div>
-
-          {/* Column 3: Hỗ trợ */}
-          <div className="col-lg-2 col-md-6 mb-4">
-            <FooterLinks 
-              title="Hỗ Trợ"
-              links={[
-                { name: 'Hướng Dẫn Sử Dụng', url: '/help' },
-                { name: 'Câu Hỏi Thường Gặp', url: '/faq' },
-                { name: 'Liên Hệ', url: '/contact' },
-                { name: 'Báo Lỗi', url: '/report' },
-                { name: 'Đóng Góp Ý Kiến', url: '/feedback' }
+                { name: 'Nhà thuốc', url: '/pharmacy' },
+                { name: 'Cơ sở y tế', url: '/medical-facility' },
+                { name: 'Vùng Dịch', url: '/outbreaks' }
               ]}
             />
           </div>

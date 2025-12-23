@@ -8,7 +8,7 @@ const {
   v4: uuidv4
 } = require("uuid");
 
-class MedicalFacility extends Model {}
+class MedicalFacility extends Model { }
 
 MedicalFacility.init({
   facility_id: {

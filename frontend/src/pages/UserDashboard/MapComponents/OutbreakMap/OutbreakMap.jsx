@@ -4,7 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './OutbreakMap.css';
 
-// Fix cho icon marker trong React-Leaflet
+// Cấu hình icon mặc định của Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -16,14 +16,12 @@ L.Icon.Default.mergeOptions({
 const MapController = ({ outbreakToZoom, outbreakAreas }) => {
   const map = useMap();
 
+  // Hiệu ứng zoom vào vùng dịch khi outbreakToZoom thay đổi
   useEffect(() => {
     if (outbreakToZoom && outbreakAreas.length > 0) {
       const outbreak = outbreakAreas.find(o => o.id === outbreakToZoom);
       if (outbreak && outbreak.coordinates && outbreak.coordinates.length > 0) {
-        // Tạo bounds từ coordinates của vùng dịch
         const bounds = L.latLngBounds(outbreak.coordinates);
-        
-        // Zoom vào vùng dịch với padding
         map.fitBounds(bounds, {
           padding: [50, 50],
           maxZoom: 18,
@@ -57,7 +55,7 @@ const MapController = ({ outbreakToZoom, outbreakAreas }) => {
   return null;
 };
 
-// Helper functions
+// Hàm lấy text mô tả mức độ nghiêm trọng
 const getSeverityText = (severity) => {
   switch(severity) {
     case 'high': return 'Cao';
@@ -67,6 +65,7 @@ const getSeverityText = (severity) => {
   }
 };
 
+// Hàm định dạng ngày tháng
 const formatDate = (dateString) => {
   if (!dateString) return 'Đang diễn ra';
   try {
@@ -78,7 +77,7 @@ const formatDate = (dateString) => {
 };
 
 const OutbreakMap = ({ 
-  outbreaks = [], // QUAN TRỌNG: Nhận outbreaks từ props thay vì tự fetch
+  outbreaks = [], 
   onOutbreakClick, 
   selectedOutbreakId,
   showLoading = false 
@@ -119,8 +118,6 @@ const OutbreakMap = ({
   // Hàm xử lý dữ liệu geometry từ API - Sửa để xử lý trực tiếp từ prop
   const processOutbreakData = useCallback((outbreak) => {
     const coordinates = processGeometry(outbreak.area_geom);
-    
-    // Tính trung tâm của polygon để đặt marker
     let center = mapCenter;
     if (coordinates.length > 0) {
       const sum = coordinates.reduce((acc, coord) => {
@@ -146,10 +143,9 @@ const OutbreakMap = ({
     };
   }, [mapCenter, getColorBySeverity, getOutbreakIcon]);
 
-  // Hàm xử lý geometry
+  // Hàm xử lý geometry từ dữ liệu API
   const processGeometry = useCallback((geometry) => {
     if (!geometry || !geometry.coordinates) return [];
-    
     try {
       const polygonCoordinates = geometry.coordinates[0];
       return polygonCoordinates.map(coord => [coord[1], coord[0]]);
@@ -159,13 +155,13 @@ const OutbreakMap = ({
     }
   }, []);
 
-  // Process outbreaks data từ props
+  // Xử lý dữ liệu outbreaks khi prop thay đổi
   const processedOutbreaks = useMemo(() => {
     if (!outbreaks || outbreaks.length === 0) return [];
     return outbreaks.map(outbreak => processOutbreakData(outbreak));
   }, [outbreaks, processOutbreakData]);
 
-  // Theo dõi sự thay đổi của selectedOutbreakId
+  // Hiệu ứng zoom vào outbreak được chọn
   useEffect(() => {
     if (selectedOutbreakId) {
       isZoomingRef.current = true;
@@ -180,8 +176,6 @@ const OutbreakMap = ({
     if (onOutbreakClick) {
       onOutbreakClick(outbreak);
     }
-    
-    // Zoom vào vùng dịch được click
     if (mapRef.current && outbreak.coordinates && outbreak.coordinates.length > 0) {
       const map = mapRef.current;
       const bounds = L.latLngBounds(outbreak.coordinates);
@@ -230,7 +224,7 @@ const OutbreakMap = ({
     );
   };
 
-  // Empty state khi không có outbreaks
+  // Hiển thị trạng thái khi không có dữ liệu
   if (!showLoading && (!outbreaks || outbreaks.length === 0)) {
     return (
       <div className="outbreak-map-container">
@@ -331,7 +325,6 @@ const OutbreakMap = ({
 
       {/* Legend */}
       <div className="map-legend">
-       
         <div className="legend-items">
           <div className="legend-item">
             <span className="legend-color high"></span>
