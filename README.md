@@ -14,10 +14,10 @@
 
 ## 👥 Thành viên nhóm
 
-| STT | Họ và tên           | MSSV     | Vai trò       |
+| STT | Họ và tên           | MSSV     | Ghi chú       |
 |-----|---------------------|----------|---------------|
 | 1   | Nguyễn Thanh Nhã    | 22520994 | Nhóm trưởng   |
-| 2   | Lê Quốc Thái        | 22521318 | Backend, GIS  |
-| 3   | Lê Thái Khánh Ngân  | 22520930 | Frontend, BA  |
-| 4   | Trần Công Hiển      | 22520425 | Backend, DevOps |
-| 5   | Phan Võ Mỹ Huyền    | 22520591 | Tài liệu, GIS |
+| 2   | Lê Quốc Thái        | 22521318 |
+| 3   | Lê Thái Khánh Ngân  | 22520930 |
+| 4   | Trần Công Hiển      | 22520425 |
+| 5   | Phan Võ Mỹ Huyền    | 22520591 |
