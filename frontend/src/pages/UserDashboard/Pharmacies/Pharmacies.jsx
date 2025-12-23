@@ -126,13 +126,18 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
     // filter: tìm theo pharmacy_name hoặc address (an toàn khi p undefined)
     const filteredPharmacies = useMemo(() => {
         return pharmacies.filter(p => {
+            // Lọc theo trạng thái nhà thuốc
+            if (activeTab !== 'all' && p.status !== activeTab) {
+                return false;
+            }
+
             if (!p) return false;
             const name = (p.pharmacy_name || '').toString().toLowerCase();
             const addr = (p.address || '').toString().toLowerCase();
             const q = searchTerm.toLowerCase();
             return name.includes(q) || addr.includes(q);
         });
-    }, [pharmacies, searchTerm]);
+    }, [pharmacies, activeTab, searchTerm]);
 
     // Tính toán phân trang
     const totalPages = Math.ceil(filteredPharmacies.length / itemsPerPage);
@@ -187,7 +192,23 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
         return pageNumbers;
     };
 
+    const getStatusBadge = (status) => {
+        const statusConfig = {
+        active: { label: 'Hoạt động', class: 'success' },
+        pending: { label: 'Chờ duyệt', class: 'warning' },
+        inactive: { label: 'Ngưng hoạt động', class: 'danger' }
+        };
+        const config = statusConfig[status] || { label: status || 'Không rõ', class: 'secondary' };
+        return <span className={`badge bg-${config.class}`}>{config.label}</span>;
+    };
 
+    // Thống kê nhanh
+    const stats = {
+        total: pharmacies.length,
+        activeStatus: pharmacies.filter(o => o.status === 'active').length,
+        pendingStatus: pharmacies.filter(o => o.status === 'pending').length,
+        inactiveStatus: pharmacies.filter(o => o.status === 'inactive').length,
+    };
 
     // Thống kê theo bộ lọc hiện tại
     const filteredStats = {
@@ -234,6 +255,26 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                 <div className="header-content">
                     <h2>Quản Lý Nhà Thuốc</h2>
                     <p>Quản lý thông tin các nhà thuốc trên toàn quốc</p>
+                    
+                    {/* Quick Stats */}
+                    <div className="facility-stats-overview">
+                            <div className="stat-item">
+                                <div className="stat-value">{stats.total}</div>
+                                <div className="stat-label">Tổng nhà thuốc</div>
+                            </div>
+                            <div className="stat-item">
+                                <div className="stat-value">{stats.activeStatus}</div>
+                                <div className="stat-label">Trạng thái hoạt động</div>
+                            </div>
+                            <div className="stat-item">
+                                <div className="stat-value">{stats.pendingStatus}</div>
+                                <div className="stat-label">Trạng thái đang chờ duyệt</div>
+                            </div>
+                            <div className="stat-item">
+                                <div className="stat-value">{stats.inactiveStatus}</div>
+                                <div className="stat-label">Trạng thái ngưng hoạt động</div>
+                            </div>
+                    </div>
                 </div>
             </div>
 
@@ -294,7 +335,41 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                             />
                         </div>
                     </div>
-                    <div className="col-md-6">
+                </div>
+
+                <div className="row g-3 mt-2">
+                    <div className="col-md-8">
+                        <div className="status-filter-row">
+                            <div className="filter-tabs">
+                                <button
+                                className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+                                onClick={() => { setActiveTab('all'); setCurrentPage(1); }}
+                                >
+                                Tất cả ({stats.total})
+                                </button>
+                                <button
+                                className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+                                onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
+                                >
+                                Hoạt động ({stats.activeStatus})
+                                </button>
+                                <button
+                                className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
+                                onClick={() => { setActiveTab('pending'); setCurrentPage(1); }}
+                                >
+                                Đang chờ duyệt ({stats.pendingStatus})
+                                </button>
+                                <button
+                                className={`tab-btn ${activeTab === 'inactive' ? 'active' : ''}`}
+                                onClick={() => { setActiveTab('inactive'); setCurrentPage(1); }}
+                                >
+                                Ngưng hoạt động ({stats.inactiveStatus})
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div className="col-md-4">
                         <div className="items-per-page-selector">
                             <label className="me-2">Hiển thị:</label>
                             <select
@@ -346,6 +421,7 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                                         <th>Tên nhà thuốc</th>
                                         <th>Địa chỉ</th>
                                         <th>Tỉnh/Thành phố</th>
+                                        <th>Trạng thái</th>
                                         <th>Thao tác</th>
                                     </tr>
                                 </thead>
@@ -354,21 +430,18 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                                     {currentPharmacies.map((pharmacy, index) => (
                                         <tr key={pharmacy.pharmacy_id}>
                                             <td>{startIndex + index + 1}</td>
-                                            <td>
-                                                <strong>{pharmacy.pharmacy_name}</strong>
-                                            </td>
-                                            <td>
-                                                <small>{pharmacy.address}</small>
-                                            </td>
-                                            <td>
-                                                {provinceMap[pharmacy.province_id]}
-                                            </td>
+                                            <td><strong>{pharmacy.pharmacy_name}</strong></td>
+                                            <td><small>{pharmacy.address}</small></td>
+                                            <td>{provinceMap[pharmacy.province_id]}</td>
+                                            <td>{getStatusBadge(pharmacy.status)}</td>
                                             <td>
                                                 <div className="action-buttons">
-                                                    <button
+                                                    <button     // sửa
                                                         className="btn btn-sm btn-outline-primary me-1"
                                                         title="Chỉnh sửa"
-                                                        onClick={() => { setEditingPharmacy(pharmacy); setShowForm(true); }}
+                                                        onClick={() => { 
+                                                            console.log("status nhà thuốc:", pharmacy.status);
+                                                            setEditingPharmacy(pharmacy); setShowForm(true); }}
                                                     >
                                                         <i className="bi bi-pencil"></i>
                                                     </button>
@@ -383,7 +456,7 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                                                         <i className="bi bi-eye"></i>
                                                     </button> */}
 
-                                                    <button
+                                                    <button     // xóa
                                                         className="btn btn-sm btn-outline-danger"
                                                         title="Xóa"
                                                         onClick={() => handleDeleteClick(pharmacy.pharmacy_id, pharmacy.pharmacy_name)}

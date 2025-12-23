@@ -8,7 +8,7 @@ module.exports = {
         pharmacy_name: body.pharmacy_name, 
         //type_id: body.type_id,
         address: body.address,
-        //phone: body.phone,
+        status: body.status,
         province_id: body.province_id,
         //services: (body.services || []).join(', '),
         pharmacy_point_id: body.pharmacy_point_id,

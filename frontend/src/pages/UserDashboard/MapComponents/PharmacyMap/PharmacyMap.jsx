@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './PharmacyMap.css';
@@ -10,15 +10,6 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-});
-
-export const pharmacyIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  shadowSize: [41, 41]
 });
 
 // Component con để điều khiển map
@@ -61,6 +52,16 @@ const MapController = ({ pharmacyToZoom, pharmacyAreas }) => {
   return null;
 };
 
+// Helper functions
+const getStatusText = (status) => {
+  switch(status) {
+    case 'active': return 'Hoạt động';
+    case 'pending': return 'Chờ duyệt';
+    case 'inactive': return 'Ngừng hoạt động';
+    default: return 'Không xác định';
+  }
+};
+
 const PharmacyMap = ({ 
   pharmacies = [], // QUAN TRỌNG: Nhận pharmacies từ props thay vì tự fetch
   onPharmacyClick, 
@@ -71,6 +72,34 @@ const PharmacyMap = ({
   const [mapZoom] = useState(12);
   const mapRef = useRef();
   const isZoomingRef = useRef(false);
+
+// Tạo icon cho cơ sở y tế theo trạng thái hoạt động
+  const getPharmacyIcon = useCallback((status) => {
+    const iconUrl = status === 'active' 
+      ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png'
+      : status === 'pending'
+      ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png'
+      : 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png';
+
+    return new L.Icon({
+      iconUrl,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      shadowSize: [41, 41]
+    });
+  }, []);
+
+  // Hàm lấy màu sắc cho pharmacy dựa trên status
+  const getColorByStatus = useCallback((status) => {
+    switch(status) {
+      case 'active': return '#00ff00';
+      case 'pending': return 'fde614ff';
+      case 'inactive': return '#ff0000';
+      default: return '#cccccc';
+    }
+  }, []);
 
   // lấy location cho mỗi pharmacy
   const [pharmaciesWithLocation, setPharmaciesWithLocation] = useState([]);
@@ -118,12 +147,13 @@ const PharmacyMap = ({
       id: pharmacy.pharmacy_id,
       name: pharmacy.pharmacy_name,
       address: pharmacy.address,
+      status: pharmacy.status,
       province: pharmacy.province_id,
 
       location: [lat, lng],
-      fillColor: '#00ff00',
-      borderColor: '#00ff00',
-      icon: pharmacyIcon
+      fillColor: getColorByStatus(pharmacy.status),
+      borderColor: getColorByStatus(pharmacy.status),
+      icon: getPharmacyIcon(pharmacy.status)
     };
   });
 
@@ -167,6 +197,15 @@ const PharmacyMap = ({
           <strong>💊 {pharmacy.name}</strong>
         </div>
 
+        <div style={{ marginBottom: '10px' }}>
+          <div><strong>Trạng thái hoạt động: </strong> <span style={{ color: pharmacy.status === 'inactive' ? '#dc3545' : pharmacy.status === 'pending' ? '#fde614ff' : '#28a745' }}>
+            {getStatusText(pharmacy.status)}
+          </span></div>
+        </div>
+        
+        <div style={{ marginBottom: '10px' }}>
+          <div><strong>Địa chỉ:</strong> {pharmacy.address}</div>
+        </div>
       </div>
     );
   };

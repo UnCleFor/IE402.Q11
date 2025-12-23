@@ -8,7 +8,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
   const defaultFormData = {
     name: '',
     address: '',
-    phone: '',
+    status: '',
     province: '',
   };
 
@@ -28,7 +28,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
       setFormData({
         name: initialData.pharmacy_name || initialData.name || '',
         address: initialData.address || '',
-        phone: initialData.phone || '',
+        status: initialData.status || '',
         province: initialData.province_id || initialData.province || '',
         location: initialData.pharmacy_point_id || initialData.location || null
       });
@@ -40,6 +40,12 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const prevStep = () => setCurrentStep(prev => prev - 1);
+
+  const statusMap = [
+    { value: 'active', label: 'Hoạt động', icon: 'bi bi-hospital' },
+    { value: 'pending', label: 'Chờ duyệt', icon: 'bi bi-plus-circle' },
+    { value: 'inactive', label: 'Ngưng hoạt động', icon: 'bi bi-building' },
+  ];
 
   const [provinces, setProvinces] = useState([]);
 
@@ -147,6 +153,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
       pharmacy_point_id: locationId,
       creator_id: userId,
       address: formData.address,
+      status: formData.status,
       province_id: formData.province
     };
 
@@ -217,7 +224,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
         {/* STEP 1 */}
         {currentStep === 1 && (
           <div className="form-step">
-            <div className="form-group">
+            <div className="form-group"  style={{ gridColumn: 'span 2' }}>
               <label>Tên nhà thuốc *</label>
               <input
                 type="text"
@@ -235,20 +242,43 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
               )}
             </div>
 
-            <div className="form-group">
-              <label>Tỉnh/Thành phố *</label>
-              <select
-                className="form-control"
-                value={formData.province}
-                onChange={(e) => handleInputChange('province', e.target.value)}
-                required
-              >
-                <option value="">-- Chọn tỉnh/thành --</option>
-                {provinces.map((p) => (
-                  <option key={p.province_id} value={p.province_id}>{p.province_name}</option>
-                ))}
-              </select>
+            <div className="row">
+              <div className="col-md-6">
+                <div className="form-group">
+                  <label>Tỉnh/Thành phố *</label>
+                  <select
+                    className="form-control"
+                    value={formData.province}
+                    onChange={(e) => handleInputChange('province', e.target.value)}
+                    required
+                  >
+                    <option value="">-- Chọn tỉnh/thành --</option>
+                    {provinces.map((p) => (
+                      <option key={p.province_id} value={p.province_id}>{p.province_name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="col-md-6">
+                <div className="form-group">
+                  <label>Trạng thái hoạt động</label>
+                  <select
+                    className="form-control"
+                    value={formData.status}
+                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    required
+                  >
+                    <option value="">-- Chọn trạng thái --</option>
+                    <option value="active">Hoạt động</option>
+                    <option value="pending">Đang chờ duyệt</option>
+                    <option value="inactive">Ngưng hoạt động</option>
+                  </select>
+                </div>
+              </div>                
             </div>
+
+
 
             <div className="form-group">
               <label>Địa chỉ chi tiết*</label>
@@ -317,6 +347,12 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
                     <label>Tỉnh/Thành:</label>
                     <span>{provinceMap[formData.province] || '(Chưa chọn)'}</span>
                   </div>
+                  {mode === 'edit' && (
+                    <div className="summary-item">
+                      <label>Trạng thái hoạt động:</label>
+                      <span>{statusMap.find(s => s.value === formData.status)?.label}</span>
+                    </div>
+                  )}                  
                   <div className="summary-item" style={{ gridColumn: 'span 2' }}>
                     <label>Địa chỉ:</label>
                     <span>{formData.address || '(Chưa nhập địa chỉ)'}</span>

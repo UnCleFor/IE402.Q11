@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './FacilityMap.css';
@@ -103,7 +103,7 @@ const FacilityMap = ({
   const getColorByStatus = useCallback((status) => {
     switch(status) {
       case 'active': return '#00ff00';
-      case 'pending': return '#ffff00';
+      case 'pending': return 'fde614ff';
       case 'inactive': return '#ff0000';
       default: return '#cccccc';
     }
@@ -217,6 +217,7 @@ const FacilityMap = ({
         <div style={{ marginBottom: '10px' }}>
           <div><strong>Điện thoại</strong> {facility.phone}</div>
           <div><strong>Dịch vụ:</strong> {facility.services.join(", ")}</div>
+          <div><strong>Địa chỉ:</strong> {facility.address}</div>
         </div>
       </div>
     );

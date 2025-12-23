@@ -258,7 +258,7 @@
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr) !important;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   /* word-break: break-word; */
 }
