@@ -1,6 +1,8 @@
 const MedicalFacility = require("../models/medical_facility.model");
 const { Op } = require("sequelize");
 const Location = require("../models/location.model");
+const sequelize = require("../config/db");
+
 const {
   buildSearchConditions,
   addFilters,
@@ -41,8 +43,6 @@ async function deleteFacility(id) {
   await MedicalFacility.destroy({
     where: { facility_id: id }
   });
-
-  console.log("Facility deleted");
 
   if (locationId) {
     await Location.destroy({
@@ -134,48 +134,63 @@ async function findNearby(queryParams) {
     const {
       lat,
       lng,
-      type_id,
-      province_id,
       radius = 5000,
-      limit = 10
+      limit = 10,
+      type_id,
+      province_id
     } = queryParams;
 
-    // Validate required parameters
     if (!lat || !lng) {
-      throw new Error('Missing required parameters: lat and lng');
+      throw new Error("Missing lat or lng");
     }
 
-    // Điều kiện where
-    const whereConditions = { status: "active" };
-    if (type_id) whereConditions.type_id = type_id;
-    if (province_id) whereConditions.province_id = province_id;
+    const replacements = {
+      lat: parseFloat(lat),
+      lng: parseFloat(lng),
+      radius: parseFloat(radius),
+      limit: parseInt(limit)
+    };
 
-    // Lấy tất cả medical facilities active
-    const facilities = await MedicalFacility.findAll({
-      where: whereConditions,
-      limit: 100 // Giới hạn để tối ưu
+    let whereExtra = "";
+    if (type_id) {
+      whereExtra += " AND mf.type_id = :type_id";
+      replacements.type_id = type_id;
+    }
+    if (province_id) {
+      whereExtra += " AND mf.province_id = :province_id";
+      replacements.province_id = province_id;
+    }
+
+    const sql = `
+      SELECT
+        mf.*,
+        l.location_id,
+        ST_Y(l.coordinates) AS lat,
+        ST_X(l.coordinates) AS lng,
+        ST_Distance(
+          l.coordinates::geography,
+          ST_MakePoint(:lng, :lat)::geography
+        ) AS distance
+      FROM medical_facilities mf
+      JOIN locations l
+        ON mf.facility_point_id = l.location_id
+      WHERE mf.status = 'active'
+        ${whereExtra}
+        AND ST_DWithin(
+          l.coordinates::geography,
+          ST_MakePoint(:lng, :lat)::geography,
+          :radius
+        )
+      ORDER BY distance
+      LIMIT :limit;
+    `;
+
+    const results = await sequelize.query(sql, {
+      replacements,
+      type: sequelize.QueryTypes.SELECT
     });
 
-    if (!facilities || facilities.length === 0) {
-      return [];
-    }
-
-    // Kết hợp với location data
-    let combinedResults = await getCombinedDataWithLocations(
-      facilities,
-      'facility_point_id'
-    );
-
-    // Lọc và sắp xếp theo khoảng cách
-    combinedResults = filterAndSortByDistance(
-      combinedResults,
-      lat,
-      lng,
-      radius
-    );
-
-    // Giới hạn kết quả
-    return combinedResults.slice(0, parseInt(limit));
+    return results;
 
   } catch (error) {
     console.error('Error in MedicalFacilityService.findNearby:', error);

@@ -151,13 +151,8 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
 
   // XÓA: hàm xử lý xóa (giống Pharmacies.jsx)
   const handleDeleteClick = async (facilityId, facilityName) => {
-    // Sử dụng prop nếu có, nếu không dùng window.confirm
-    console.log("onDeleteFacility =", onDeleteFacility);
-
     // Fallback: dùng window.confirm
     if (!window.confirm(`Xác nhận xóa cơ sở "${facilityName}"?`)) return;
-
-    console.log("Deleting facility ID:", facilityId);
 
     try {
       const response = await fetch(`http://localhost:3001/api/medical-facilities/${facilityId}`, {
@@ -171,7 +166,6 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
       // Cập nhật state local
       setFacilities(prev => {
         const updated = prev.filter(f => f.id !== facilityId);
-        console.log("Facilities sau khi xoá:", updated);
         return updated;
       });
 
@@ -547,11 +541,6 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
                             <button     // sửa
                               className="btn btn-sm btn-outline-primary"
                               onClick={() => {
-                                console.log("Editing facility - Full object:", f);
-                                console.log("Facility name:", f.name);
-                                console.log("Facility ID:", f.id);
-                                console.log("Raw data:", f.raw);
-
                                 // Tạo object đầy đủ với tất cả field cần thiết
                                 const facilityData = {
                                   facility_id: f.id,
@@ -571,7 +560,6 @@ const MedicalFacilities = ({ onAddFacility, onEditFacility, onDeleteFacility }) 
                                   facility_point_id: f.raw?.facility_point_id || null
                                 };
 
-                                console.log("Data to pass to form:", facilityData);
                                 setEditingFacility(facilityData);
                                 setShowForm(true);
                               }}

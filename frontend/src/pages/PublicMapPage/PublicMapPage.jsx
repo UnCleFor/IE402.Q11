@@ -352,6 +352,8 @@ export default function MapView() {
       phone: pharmacy.phone,
       coordinates: coordinates,
       distance: pharmacy.distance,
+      lat: pharmacy.lat,
+      lng: pharmacy.lng,
       details: {
         pharmacy_name: pharmacy.pharmacy_name,
         phone: pharmacy.phone,
@@ -392,6 +394,8 @@ export default function MapView() {
       phone: facility.phone,
       coordinates: coordinates,
       distance: facility.distance,
+      lat: facility.lat,
+      lng: facility.lng,
       details: {
         facility_name: facility.facility_name,
         phone: facility.phone,
@@ -487,410 +491,419 @@ export default function MapView() {
       // Vẽ đường đi đến điểm đã chọn
       // drawRouteToNearest(result);
     }
-  };
 
-  // Hàm vẽ đường đi (Đáng phát triển)
-  // const drawRouteToNearest = (destination) => {
-  //   if (!currentLocation || !mapRef.current || !destination.coordinates) return;
+    if (result.lat != null && result.lng != null) {
+      const lat = Number(result.lat);
+      const lng = Number(result.lng);
 
-  //   const [destLng, destLat] = destination.coordinates.coordinates;
-
-  //   const route = L.polyline([
-  //     currentLocation,
-  //     [destLat, destLng]
-  //   ], {
-  //     color: '#007bff',
-  //     weight: 4,
-  //     opacity: 0.7,
-  //     dashArray: '10, 10'
-  //   });
-
-  //   route.addTo(mapRef.current);
-  //   setNearestRoute(route);
-  // };
-
-  // Hàm render popup cho location
-  const renderPopupContent = (point) => {
-    const isSearchResult = point.isSearchResult;
-    const isNearestResult = nearestResults.some(
-      nearest => nearest.id === point.id || nearest.location_id === point.location_id
-    );
-
-    const getTitle = () => {
-      if (point.type === 'pharmacy') {
-        return `💊 ${point.object_type || 'NHÀ THUỐC'}`;
-      } else if (point.type === 'medical_facility') {
-        return `🏥 ${point.object_type || 'CƠ SỞ Y TẾ'}`;
-      } else {
-        return `📍 ${point.object_type || 'ĐỊA ĐIỂM'}`;
+      if (mapRef.current) {
+        mapRef.current.setView([lat, lng], 16);
       }
-    };
-
-    // Hàm render services
-  const renderServices = (services) => {
-    if (!services) return null;
-    
-    // Nếu services là mảng
-    if (Array.isArray(services)) {
-      return services.join(", ");
-    }
-    
-    // Nếu services là chuỗi JSON
-    try {
-      const parsed = JSON.parse(services);
-      if (Array.isArray(parsed)) {
-        return parsed.join(", ");
-      }
-      return services;
-    } catch (e) {
-      // Nếu không parse được, trả về chuỗi gốc
-      return services;
     }
   };
 
-    return (
-      <div>
-        {isNearestResult && (
-          <div className="nearest-indicator">
-            ⭐ <strong>GẦN NHẤT</strong>
-          </div>
-        )}
+    // Hàm vẽ đường đi (Đáng phát triển)
+    // const drawRouteToNearest = (destination) => {
+    //   if (!currentLocation || !mapRef.current || !destination.coordinates) return;
 
-        {isSearchResult && !isNearestResult && (
-          <div className="search-indicator">
-            🔍 <strong>KẾT QUẢ TÌM KIẾM</strong>
-          </div>
-        )}
+    //   const [destLng, destLat] = destination.coordinates.coordinates;
 
-        <strong>{getTitle()}</strong><br />
-        <hr className="popup-divider" />
+    //   const route = L.polyline([
+    //     currentLocation,
+    //     [destLat, destLng]
+    //   ], {
+    //     color: '#007bff',
+    //     weight: 4,
+    //     opacity: 0.7,
+    //     dashArray: '10, 10'
+    //   });
 
-        <div><strong>Tên:</strong> {point.name || point.details?.pharmacy_name || point.details?.facility_name || 'Không có tên'}</div>
+    //   route.addTo(mapRef.current);
+    //   setNearestRoute(route);
+    // };
 
-        {point.type === 'pharmacy' && point.details && (
-          <>
-            {point.details.phone && <div><strong>Điện thoại:</strong> {point.details.phone}</div>}
-            {point.details.opening_hours && <div><strong>Giờ mở cửa:</strong> {point.details.opening_hours}</div>}
-          </>
-        )}
+    // Hàm render popup cho location
+    const renderPopupContent = (point) => {
+      const isSearchResult = point.isSearchResult;
+      const isNearestResult = nearestResults.some(
+        nearest => nearest.id === point.id || nearest.location_id === point.location_id
+      );
 
-        {point.type === 'medical_facility' && point.details && (
-          <>
-            {point.details.phone && <div><strong>Điện thoại:</strong> {point.details.phone}</div>}
-            {point.details.services && <div><strong>Dịch vụ:</strong> {renderServices(point.details.services)}</div>}
-          </>
-        )}
+      const getTitle = () => {
+        if (point.type === 'pharmacy') {
+          return `💊 ${point.object_type || 'NHÀ THUỐC'}`;
+        } else if (point.type === 'medical_facility') {
+          return `🏥 ${point.object_type || 'CƠ SỞ Y TẾ'}`;
+        } else {
+          return `📍 ${point.object_type || 'ĐỊA ĐIỂM'}`;
+        }
+      };
 
-        {point.address && <div><strong>Địa chỉ:</strong> {point.address}</div>}
+      // Hàm render services
+      const renderServices = (services) => {
+        if (!services) return null;
 
-        {point.distance && (
-          <div><strong>Khoảng cách:</strong> {point.distance.toLocaleString()} mét</div>
-        )}
-      </div>
-    );
-  };
+        // Nếu services là mảng
+        if (Array.isArray(services)) {
+          return services.join(", ");
+        }
 
-  // Hàm render popup cho outbreak area
-  const renderOutbreakPopup = (area) => {
-    const getSeverityText = (severity) => {
-      switch (severity) {
-        case 'high': return 'Cao';
-        case 'medium': return 'Trung bình';
-        case 'low': return 'Thấp';
-        default: return 'Không xác định';
-      }
+        // Nếu services là chuỗi JSON
+        try {
+          const parsed = JSON.parse(services);
+          if (Array.isArray(parsed)) {
+            return parsed.join(", ");
+          }
+          return services;
+        } catch (e) {
+          // Nếu không parse được, trả về chuỗi gốc
+          return services;
+        }
+      };
+
+      return (
+        <div>
+          {isNearestResult && (
+            <div className="nearest-indicator">
+              ⭐ <strong>GẦN NHẤT</strong>
+            </div>
+          )}
+
+          {isSearchResult && !isNearestResult && (
+            <div className="search-indicator">
+              🔍 <strong>KẾT QUẢ TÌM KIẾM</strong>
+            </div>
+          )}
+
+          <strong>{getTitle()}</strong><br />
+          <hr className="popup-divider" />
+
+          <div><strong>Tên:</strong> {point.name || point.details?.pharmacy_name || point.details?.facility_name || 'Không có tên'}</div>
+
+          {point.type === 'pharmacy' && point.details && (
+            <>
+              {point.details.phone && <div><strong>Điện thoại:</strong> {point.details.phone}</div>}
+              {point.details.opening_hours && <div><strong>Giờ mở cửa:</strong> {point.details.opening_hours}</div>}
+            </>
+          )}
+
+          {point.type === 'medical_facility' && point.details && (
+            <>
+              {point.details.phone && <div><strong>Điện thoại:</strong> {point.details.phone}</div>}
+              {point.details.services && <div><strong>Dịch vụ:</strong> {renderServices(point.details.services)}</div>}
+            </>
+          )}
+
+          {point.address && <div><strong>Địa chỉ:</strong> {point.address}</div>}
+
+          {point.distance && (
+            <div><strong>Khoảng cách:</strong> {point.distance.toLocaleString()} mét</div>
+          )}
+        </div>
+      );
     };
 
+    // Hàm render popup cho outbreak area
+    const renderOutbreakPopup = (area) => {
+      const getSeverityText = (severity) => {
+        switch (severity) {
+          case 'high': return 'Cao';
+          case 'medium': return 'Trung bình';
+          case 'low': return 'Thấp';
+          default: return 'Không xác định';
+        }
+      };
+
+      return (
+        <div>
+          <strong>⚠️ VÙNG DỊCH BỆNH</strong><br />
+          <hr className="popup-divider" />
+          <div><strong>Tên vùng dịch:</strong> {area.outbreak_name}</div>
+          <div><strong>ID bệnh:</strong> {area.disease_id}</div>
+          <div><strong>Số ca bệnh:</strong> {area.disease_cases}</div>
+          <div><strong>Mức độ nghiêm trọng:</strong> {getSeverityText(area.severity_level)}</div>
+          <div><strong>Ngày bắt đầu:</strong> {new Date(area.start_date).toLocaleDateString('vi-VN')}</div>
+          {area.end_date && (
+            <div><strong>Ngày kết thúc:</strong> {new Date(area.end_date).toLocaleDateString('vi-VN')}</div>
+          )}
+        </div>
+      );
+    };
+
+    if (loading) {
+      return (
+        <div className="loading-container">
+          <div>Đang tải dữ liệu bản đồ...</div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="error-container">
+          <div>Lỗi: {error}</div>
+        </div>
+      );
+    }
+
     return (
-      <div>
-        <strong>⚠️ VÙNG DỊCH BỆNH</strong><br />
-        <hr className="popup-divider" />
-        <div><strong>Tên vùng dịch:</strong> {area.outbreak_name}</div>
-        <div><strong>ID bệnh:</strong> {area.disease_id}</div>
-        <div><strong>Số ca bệnh:</strong> {area.disease_cases}</div>
-        <div><strong>Mức độ nghiêm trọng:</strong> {getSeverityText(area.severity_level)}</div>
-        <div><strong>Ngày bắt đầu:</strong> {new Date(area.start_date).toLocaleDateString('vi-VN')}</div>
-        {area.end_date && (
-          <div><strong>Ngày kết thúc:</strong> {new Date(area.end_date).toLocaleDateString('vi-VN')}</div>
-        )}
-      </div>
-    );
-  };
-  
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div>Đang tải dữ liệu bản đồ...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="error-container">
-        <div>Lỗi: {error}</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`map-view-container ${isFullscreen ? 'fullscreen' : ''}`}>
-      {/* Nút bật/tắt MapControls */}
-      {!showMapControls && (
-        <button
-          className="toggle-controls-btn"
-          onClick={() => setShowMapControls(true)}
-          title="Hiện bộ điều khiển"
-        >
-          <i className="bi bi-chevron-down me-1"></i>
-          Hiện điều khiển
-        </button>
-      )}
-
-      {/* Map Controls Component */}
-      {showMapControls && (
-        <MapControls
-          onSearch={handleSearch}
-          onFilterChange={handleFilterChange}
-          onFindNearest={handleFindNearest}
-          onClose={() => setShowMapControls(false)}
-          filters={filters}
-        />
-      )}
-
-      {/* Nút lấy vị trí hiện tại */}
-      <button
-        className="current-location-btn"
-        onClick={getUserLocation}
-        title="Lấy vị trí hiện tại"
-      >
-        <i className="bi bi-geo-alt me-1"></i>
-        Vị trí của tôi
-      </button>
-
-      {/* Legend */}
-      <div className="legend-container">
-        <div className="legend-title">Chú thích:</div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: '#28a745' }}></div>
-          <span>Nhà thuốc</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: '#dc3545' }}></div>
-          <span>Cơ sở y tế</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: '#ffd700', width: '20px', height: '20px' }}></div>
-          <span>Điểm gần nhất</span>
-        </div>
-        <hr className="legend-divider" />
-        <div style={{ marginBottom: '3px', fontWeight: 'bold' }}>Vùng dịch:</div>
-        <div className="legend-item">
-          <div className="legend-color-outbreak" style={{ backgroundColor: '#ff0000' }}></div>
-          <span>Mức độ cao</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color-outbreak" style={{ backgroundColor: '#ff9900' }}></div>
-          <span>Mức độ trung bình</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color-outbreak" style={{ backgroundColor: '#ffff00' }}></div>
-          <span>Mức độ thấp</span>
-        </div>
-      </div>
-
-      {/* Nút fullscreen */}
-      <button
-        className="fullscreen-btn"
-        onClick={() => setIsFullscreen(!isFullscreen)}
-      >
-        {isFullscreen ? (
-          <>
-            <i className="bi bi-fullscreen-exit"></i>
-            Thoát full màn hình
-          </>
-        ) : (
-          <>
-            <i className="bi bi-fullscreen"></i>
-            Mở full màn hình
-          </>
-        )}
-      </button>
-
-      <MapContainer
-        center={mapCenter}
-        zoom={13}
-        ref={mapRef}
-        className="leaflet-container"
-        scrollWheelZoom={true}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-
-        {/* Cập nhật center */}
-        <MapCenterUpdater center={mapCenter} />
-
-        {/* Hiển thị vị trí hiện tại */}
-        {userLocation && (
-          <Marker
-            position={userLocation}
-            icon={L.divIcon({
-              className: 'current-location-marker',
-              html: '<div class="current-location-marker"></div>',
-              iconSize: [20, 20]
-            })}
+      <div className={`map-view-container ${isFullscreen ? 'fullscreen' : ''}`}>
+        {/* Nút bật/tắt MapControls */}
+        {!showMapControls && (
+          <button
+            className="toggle-controls-btn"
+            onClick={() => setShowMapControls(true)}
+            title="Hiện bộ điều khiển"
           >
-            <Popup>Vị trí của bạn</Popup>
-          </Marker>
+            <i className="bi bi-chevron-down me-1"></i>
+            Hiện điều khiển
+          </button>
         )}
 
-        {/* Layer outbreak areas */}
-        {Array.isArray(outbreakAreas) && outbreakAreas.map((area, index) => {
-          if (!area.processed_coordinates || area.processed_coordinates.length === 0) {
-            return null;
-          }
+        {/* Map Controls Component */}
+        {showMapControls && (
+          <MapControls
+            onSearch={handleSearch}
+            onFilterChange={handleFilterChange}
+            onFindNearest={handleFindNearest}
+            onClose={() => setShowMapControls(false)}
+            filters={filters}
+          />
+        )}
 
-          return (
-            <Polygon
-              key={`outbreak_${area.outbreak_id || index}`}
-              positions={area.processed_coordinates}
-              pathOptions={{
-                fillColor: area.fillColor || '#cccccc',
-                color: area.borderColor || '#cccccc',
-                weight: 2,
-                opacity: 0.6,
-                fillOpacity: 0.2
-              }}
-            >
-              <Popup>
-                {renderOutbreakPopup(area)}
-              </Popup>
-            </Polygon>
-          );
-        })}
+        {/* Nút lấy vị trí hiện tại */}
+        <button
+          className="current-location-btn"
+          onClick={getUserLocation}
+          title="Lấy vị trí hiện tại"
+        >
+          <i className="bi bi-geo-alt me-1"></i>
+          Vị trí của tôi
+        </button>
 
-        {/* Layer locations đã lọc */}
-        {Array.isArray(filteredLocations) && filteredLocations.map((point) => {
-          if (!point.coordinates || !point.coordinates.coordinates) {
-            return null;
-          }
-
-          const [longitude, latitude] = point.coordinates.coordinates;
-
-          // Kiểm tra xem có phải là kết quả gần nhất không
-          const isNearestResult = nearestResults.some(
-            nearest => nearest.id === point.id || nearest.location_id === point.location_id
-          );
-
-          return (
-            <Marker
-              key={`${point.type}_${point.id || point.location_id}`}
-              position={[latitude, longitude]}
-              icon={isNearestResult ? customIcons.nearest : getIconByType(point.type)}
-            >
-              <Popup>
-                {renderPopupContent(point)}
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
-
-      {/* Panel hiển thị kết quả */}
-      {(searchResults.length > 0 || nearestResults.length > 0) && (
-        <div className="results-panel">
-          {/* Tab selection */}
-          <div className="results-tabs">
-            <button
-              className={`tab-button search ${activeResultTab === 'search' ? 'active' : ''}`}
-              onClick={() => setActiveResultTab('search')}
-            >
-              🔍 Kết quả tìm kiếm ({searchResults.length})
-            </button>
-            <button
-              className={`tab-button nearest ${activeResultTab === 'nearest' ? 'active' : ''}`}
-              onClick={() => setActiveResultTab('nearest')}
-            >
-              📍 Gần nhất ({nearestResults.length})
-            </button>
+        {/* Legend */}
+        <div className="legend-container">
+          <div className="legend-title">Chú thích:</div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ backgroundColor: '#28a745' }}></div>
+            <span>Nhà thuốc</span>
           </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ backgroundColor: '#dc3545' }}></div>
+            <span>Cơ sở y tế</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color" style={{ backgroundColor: '#ffd700', width: '20px', height: '20px' }}></div>
+            <span>Điểm gần nhất</span>
+          </div>
+          <hr className="legend-divider" />
+          <div style={{ marginBottom: '3px', fontWeight: 'bold' }}>Vùng dịch:</div>
+          <div className="legend-item">
+            <div className="legend-color-outbreak" style={{ backgroundColor: '#ff0000' }}></div>
+            <span>Mức độ cao</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color-outbreak" style={{ backgroundColor: '#ff9900' }}></div>
+            <span>Mức độ trung bình</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color-outbreak" style={{ backgroundColor: '#ffff00' }}></div>
+            <span>Mức độ thấp</span>
+          </div>
+        </div>
 
-          {/* Có thể chỉnh sửa kích thước */}
-          <div className="results-panel-content">
-            {/* Results list */}
-            <div>
-              {activeResultTab === 'search' ? (
-                searchResults.length > 0 ? (
-                  searchResults.slice(0, 10).map((result, index) => (
-                    <SearchResultItem
-                      key={index}
-                      result={result}
-                      onClick={() => handleResultClick(result)}
-                    />
-                  ))
-                ) : (
-                  <div className="no-results">
-                    Không có kết quả tìm kiếm
-                  </div>
-                )
-              ) : (
-                nearestResults.length > 0 ? (
-                  nearestResults.slice(0, 10).map((result, index) => (
-                    <NearestResultItem
-                      key={index}
-                      result={result}
-                      index={index}
-                      onClick={() => handleResultClick(result)}
-                    />
-                  ))
-                ) : (
-                  <div className="no-results">
-                    Không có kết quả gần nhất
-                  </div>
-                )
-              )}
+        {/* Nút fullscreen */}
+        <button
+          className="fullscreen-btn"
+          onClick={() => setIsFullscreen(!isFullscreen)}
+        >
+          {isFullscreen ? (
+            <>
+              <i className="bi bi-fullscreen-exit"></i>
+              Thoát full màn hình
+            </>
+          ) : (
+            <>
+              <i className="bi bi-fullscreen"></i>
+              Mở full màn hình
+            </>
+          )}
+        </button>
+
+        <MapContainer
+          center={mapCenter}
+          zoom={13}
+          ref={mapRef}
+          className="leaflet-container"
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+
+          {/* Cập nhật center */}
+          <MapCenterUpdater center={mapCenter} />
+
+          {/* Hiển thị vị trí hiện tại */}
+          {userLocation && (
+            <Marker
+              position={userLocation}
+              icon={L.divIcon({
+                className: 'current-location-marker',
+                html: '<div class="current-location-marker"></div>',
+                iconSize: [20, 20]
+              })}
+            >
+              <Popup>Vị trí của bạn</Popup>
+            </Marker>
+          )}
+
+          {/* Layer outbreak areas */}
+          {Array.isArray(outbreakAreas) && outbreakAreas.map((area, index) => {
+            if (!area.processed_coordinates || area.processed_coordinates.length === 0) {
+              return null;
+            }
+
+            return (
+              <Polygon
+                key={`outbreak_${area.outbreak_id || index}`}
+                positions={area.processed_coordinates}
+                pathOptions={{
+                  fillColor: area.fillColor || '#cccccc',
+                  color: area.borderColor || '#cccccc',
+                  weight: 2,
+                  opacity: 0.6,
+                  fillOpacity: 0.2
+                }}
+              >
+                <Popup>
+                  {renderOutbreakPopup(area)}
+                </Popup>
+              </Polygon>
+            );
+          })}
+
+          {/* Layer locations đã lọc */}
+          {Array.isArray(filteredLocations) && filteredLocations.map((point) => {
+            if (!point.coordinates || !point.coordinates.coordinates) {
+              return null;
+            }
+
+            const [longitude, latitude] = point.coordinates.coordinates;
+
+            // Kiểm tra xem có phải là kết quả gần nhất không
+            const isNearestResult = nearestResults.some(
+              nearest => nearest.id === point.id || nearest.location_id === point.location_id
+            );
+
+            return (
+              <Marker
+                key={`${point.type}_${point.id || point.location_id}`}
+                position={[latitude, longitude]}
+                icon={isNearestResult ? customIcons.nearest : getIconByType(point.type)}
+              >
+                <Popup>
+                  {renderPopupContent(point)}
+                </Popup>
+              </Marker>
+            );
+          })}
+        </MapContainer>
+
+        {/* Panel hiển thị kết quả */}
+        {(searchResults.length > 0 || nearestResults.length > 0) && (
+          <div className="results-panel">
+            {/* Tab selection */}
+            <div className="results-tabs">
+              <button
+                className={`tab-button search ${activeResultTab === 'search' ? 'active' : ''}`}
+                onClick={() => setActiveResultTab('search')}
+              >
+                🔍 Kết quả tìm kiếm ({searchResults.length})
+              </button>
+              <button
+                className={`tab-button nearest ${activeResultTab === 'nearest' ? 'active' : ''}`}
+                onClick={() => setActiveResultTab('nearest')}
+              >
+                📍 Gần nhất ({nearestResults.length})
+              </button>
             </div>
 
-            {/* Clear buttons */}
-            <div className="clear-buttons">
-              <button
-                className="clear-button clear-search"
-                onClick={() => {
-                  if (activeResultTab === 'search') {
+            {/* Có thể chỉnh sửa kích thước */}
+            <div className="results-panel-content">
+              {/* Results list */}
+              <div>
+                {activeResultTab === 'search' ? (
+                  searchResults.length > 0 ? (
+                    searchResults.slice(0, 10).map((result, index) => (
+                      <SearchResultItem
+                        key={index}
+                        result={result}
+                        onClick={() => handleResultClick(result)}
+                      />
+                    ))
+                  ) : (
+                    <div className="no-results">
+                      Không có kết quả tìm kiếm
+                    </div>
+                  )
+                ) : (
+                  nearestResults.length > 0 ? (
+                    nearestResults.slice(0, 10).map((result, index) => (
+                      <NearestResultItem
+                        key={index}
+                        result={result}
+                        index={index}
+                        onClick={() => handleResultClick(result)}
+                      />
+                    ))
+                  ) : (
+                    <div className="no-results">
+                      Không có kết quả gần nhất
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* Clear buttons */}
+              <div className="clear-buttons">
+                <button
+                  className="clear-button clear-search"
+                  onClick={() => {
+                    if (activeResultTab === 'search') {
+                      setSearchResults([]);
+                      setFilteredLocations(locations);
+                    } else {
+                      setNearestResults([]);
+                      if (nearestRoute) {
+                        nearestRoute.remove();
+                        setNearestRoute(null);
+                      }
+                    }
+                  }}
+                >
+                  Xóa {activeResultTab === 'search' ? 'kết quả tìm kiếm' : 'kết quả gần nhất'}
+                </button>
+
+                <button
+                  className="clear-button clear-all"
+                  onClick={() => {
                     setSearchResults([]);
-                    setFilteredLocations(locations);
-                  } else {
                     setNearestResults([]);
+                    setFilteredLocations(locations);
                     if (nearestRoute) {
                       nearestRoute.remove();
                       setNearestRoute(null);
                     }
-                  }
-                }}
-              >
-                Xóa {activeResultTab === 'search' ? 'kết quả tìm kiếm' : 'kết quả gần nhất'}
-              </button>
-
-              <button
-                className="clear-button clear-all"
-                onClick={() => {
-                  setSearchResults([]);
-                  setNearestResults([]);
-                  setFilteredLocations(locations);
-                  if (nearestRoute) {
-                    nearestRoute.remove();
-                    setNearestRoute(null);
-                  }
-                }}
-              >
-                Xóa tất cả
-              </button>
+                  }}
+                >
+                  Xóa tất cả
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
+        )}
+      </div>
+    );
+  }

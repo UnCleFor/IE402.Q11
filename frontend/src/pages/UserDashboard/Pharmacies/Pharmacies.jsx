@@ -412,7 +412,6 @@ const Pharmacies = ({ onAddPharmacy, onEditPharmacy, onDeletePharmacy }) => {
                                                         className="btn btn-sm btn-outline-primary me-1"
                                                         title="Chỉnh sửa"
                                                         onClick={() => { 
-                                                            console.log("status nhà thuốc:", pharmacy.status);
                                                             setEditingPharmacy(pharmacy); setShowForm(true); }}
                                                     >
                                                         <i className="bi bi-pencil"></i>

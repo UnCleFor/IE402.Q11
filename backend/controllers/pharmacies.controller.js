@@ -116,7 +116,7 @@ module.exports = {
           lat: parseFloat(lat),
           lng: parseFloat(lng)
         },
-        search_radius: req.query.radius || 5000,
+        search_radius: req.query.radius,
         data: results
       });
     } catch (err) {

@@ -18,7 +18,6 @@ const outbreakServices = {
     // Tạo vùng dịch mới
     createOutbreak: async (data) => {
         try {
-            console.log('data',data)
             const response = await api.post('/outbreak-areas', data);
             return response.data;
         } catch (error) {

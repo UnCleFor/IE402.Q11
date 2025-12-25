@@ -28,15 +28,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
 
   // THÊM: useEffect để xử lý initialData khi mode edit
   useEffect(() => {
-    console.log("=== FACILITY FORM DEBUG ===");
-    console.log("Mode:", mode);
-    console.log("InitialData received:", initialData);
-    console.log("Has facility_id?", initialData?.facility_id);
-    console.log("Has location?", initialData?.location);
-    console.log("Has facility_type?", initialData?.type_id);
-    console.log("Has name?", initialData?.name);
-    console.log("Has services?", initialData?.services);
-    
     if (mode === 'edit' && initialData) {
       // Map dữ liệu từ API vào form
       const servicesArray = (() => {
@@ -73,15 +64,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
         province: initialData.province_id || '',
         // SỬA: Xử lý location an toàn
         location: initialData.facility_point_id || initialData.location || null,
-      });
-      
-      console.log("Form data after mapping:", {
-        name: initialData.facility_name || initialData.name,
-        type: initialData.type_id || initialData.type,
-        address: initialData.address,
-        phone: initialData.phone,
-        province: initialData.province_id || initialData.province,
-        servicesCount: servicesArray.length
       });
     } else {
       // Reset cho create mode
@@ -228,13 +210,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
 
     // Lấy ID cho edit mode
     const facilityId = initialData?.facility_id || initialData?.id;
-    
-    console.log("=== SUBMIT DEBUG ===");
-    console.log("Mode:", mode);
-    console.log("Facility ID:", facilityId);
-    console.log("InitialData:", initialData);
-    console.log("Form data type:", facilityTypes);
-    console.log("Selected services:", selectedServices);
 
     const payload = {
       facility_name: formData.name,
@@ -248,50 +223,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
       creator_id: userId
     };
 
-  //       // Nếu là chỉnh sửa, thêm ID vào payload
-  //   if (mode === 'edit' && initialData && initialData.facility_id) {
-  //     payload.id = initialData.facility_id;
-  //   }
-
-  //   try {
-  //     const token = localStorage.getItem("authToken");
-      
-  //     // SỬA: Dùng method PUT nếu là edit
-  //     const method = mode === 'edit' ? 'PUT' : 'POST';
-  //     const url = mode === 'edit' 
-  //       ? `http://localhost:3001/api/facilities/${initialData.facility_id}` 
-  //       : "http://localhost:3001/api/facilities";
-      
-  //     const res = await fetch(url, {
-  //       method: method,
-  //       headers: { 
-  //         "Content-Type": "application/json",
-  //         Authorization: token ? `Bearer ${token}` : ''
-  //       },
-  //       body: JSON.stringify(payload)
-  //     });
-
-  //     const result = await res.json();
-  //     console.log(`${mode} facility result:`, result);
-
-  //     // Lấy dữ liệu trả về
-  //     const responseData = result && result.facility_id ? result : (result.data || result.created || null);
-
-  //     if (res.ok && responseData) {
-  //       // Gọi callback với dữ liệu đã được xử lý
-  //       if (typeof onSubmit === 'function') {
-  //         onSubmit(responseData);
-  //       }
-  //       alert(mode === 'edit' ? "Cập nhật cơ sở y tế thành công!" : "Thêm cơ sở y tế thành công!");
-  //     } else {
-  //       console.error(`${mode} facility failed:`, result);
-  //       alert(result?.message || `Có lỗi xảy ra khi ${mode === 'edit' ? 'cập nhật' : 'thêm'} cơ sở y tế`);
-  //     }
-  //   } catch (err) {
-  //     console.error(`${mode} facility error:`, err);
-  //     alert(`Có lỗi mạng khi ${mode === 'edit' ? 'cập nhật' : 'thêm'} cơ sở y tế`);
-  //   }
-  // };
     // Xác định API endpoint và method
     const apiUrl = "http://localhost:3001/api/medical-facilities";
 
@@ -303,9 +234,6 @@ const FacilityForm = ({ onSubmit, initialData, mode = 'create' }) => {
       // Thêm ID vào URL cho edit
       url = `${apiUrl}/${facilityId}`;
     }
-    console.log(">>> URL thực tế:", url);
-    console.log(`Calling ${method} ${url}`);
-    console.log("Payload:", payload);
 
     try {
       const res = await fetch(url, {

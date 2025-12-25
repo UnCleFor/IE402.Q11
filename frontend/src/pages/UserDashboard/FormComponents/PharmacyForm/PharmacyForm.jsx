@@ -20,9 +20,7 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
   const [formData, setFormData] = useState(defaultFormData);
   
   // SỬA: Xử lý mapping dữ liệu từ initialData
-  useEffect(() => {
-    console.log("PharmacyForm received initialData:", initialData);
-    
+  useEffect(() => {    
     if (initialData && mode === 'edit') {
       // Map dữ liệu từ API (có pharmacy_name) sang form (dùng name)
       setFormData({
@@ -180,8 +178,6 @@ const PharmacyForm = ({ onSubmit, initialData, mode = 'create' }) => {
       });
 
       const result = await res.json();
-      console.log(`${mode} pharmacy result:`, result);
-
       // Lấy dữ liệu trả về
       const pharmacyObj = result.pharmacy || result.data || result.created || result;
 

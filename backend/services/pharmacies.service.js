@@ -1,6 +1,8 @@
 const Pharmacy = require("../models/pharmacy.model");
 const { Op } = require("sequelize");
 const Location = require("../models/location.model");
+const sequelize = require("../config/db");
+
 const {
   buildSearchConditions,
   addFilters,
@@ -86,7 +88,6 @@ module.exports = {
         offset: offset,
         order: [['pharmacy_name', 'ASC']]
       });
-
       // Kết hợp với location data
       let combinedResults = await getCombinedDataWithLocations(
         pharmacies,
@@ -117,49 +118,66 @@ module.exports = {
       const {
         lat,
         lng,
-        province_id,
-        radius = 5000,
-        limit = 10
+        radius = 5000, // mét
+        limit = 10,
+        province_id
       } = queryParams;
 
-      // Validate required parameters
       if (!lat || !lng) {
-        throw new Error('Missing required parameters: lat and lng');
+        throw new Error("Missing lat or lng");
       }
 
-      // Điều kiện where
-      const whereConditions = { status: "active" };
-      if (province_id) whereConditions.province_id = province_id;
+      const replacements = {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        radius: parseFloat(radius),
+        limit: parseInt(limit)
+      };
 
-      // Lấy tất cả pharmacies active
-      const pharmacies = await Pharmacy.findAll({
-        where: whereConditions,
-        limit: 100 // Giới hạn để tối ưu
+      let whereExtra = "";
+      if (province_id) {
+        whereExtra += " AND p.province_id = :province_id";
+        replacements.province_id = province_id;
+      }
+
+      const sql = `
+      SELECT
+        p.*,
+        l.location_id,
+        ST_Y(l.coordinates) AS lat,
+        ST_X(l.coordinates) AS lng,
+        ROUND(
+          ST_Distance(
+            l.coordinates::geography,
+            ST_MakePoint(:lng, :lat)::geography
+          )
+        ) AS distance
+
+      FROM pharmacies p
+      JOIN locations l
+        ON p.pharmacy_point_id = l.location_id
+
+      WHERE p.status = 'active'
+        ${whereExtra}
+        AND ST_DWithin(
+          l.coordinates::geography,
+          ST_MakePoint(:lng, :lat)::geography,
+          :radius
+        )
+
+      ORDER BY distance
+      LIMIT :limit;
+    `;
+
+      const results = await sequelize.query(sql, {
+        replacements,
+        type: sequelize.QueryTypes.SELECT
       });
 
-      if (!pharmacies || pharmacies.length === 0) {
-        return [];
-      }
-
-      // Kết hợp với location data
-      let combinedResults = await getCombinedDataWithLocations(
-        pharmacies,
-        'pharmacy_point_id'
-      );
-
-      // Lọc và sắp xếp theo khoảng cách
-      combinedResults = filterAndSortByDistance(
-        combinedResults,
-        lat,
-        lng,
-        radius
-      );
-
-      // Giới hạn kết quả
-      return combinedResults.slice(0, parseInt(limit));
+      return results;
 
     } catch (error) {
-      console.error('Error in PharmacyService.findNearby:', error);
+      console.error('❌ Error in PharmacyService.findNearby:', error);
       throw error;
     }
   },
